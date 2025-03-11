@@ -9,8 +9,8 @@
     "test:darwin:linux": "jasmine test/**/*.js",
     "test-keyboard": "node test/keyboard.js",
     "test:win32": "jasmine test/**/*.js",
-    "install": "prebuild-install || node-gyp rebuild -std=c++17 --target=19.0.4 --arch=x64 --dist-url=https://electronjs.org/headers",
-    "install-debug": "prebuild-install || node-gyp rebuild --target=19.0.4 --arch=x64 --dist-url=https://electronjs.org/headers --debug",
+    "install": "prebuild-install || node-gyp rebuild -std=c++17 --target=35.0.1 --arch=x64 --dist-url=https://electronjs.org/headers",
+    "install-debug": "prebuild-install || node-gyp rebuild --target=35.0.1 --arch=x64 --dist-url=https://electronjs.org/headers --debug",
     "prebuild": "prebuild --all"
   },
   "repository": {
@@ -42,14 +42,15 @@
   },
   "homepage": "https://github.com/maphstr/robotjs_jm",
   "dependencies": {
-    "nan": "github:jkleinsc/nan#remove_accessor_signature",
+    "nan": "^2.22.2",
+    "node-gyp": "^11.1.0",
     "prebuild-install": "^5.3.3"
-  }, 
+  },
   "devDependencies": {
-    "tape": "^4.8.0",
     "jasmine": "^2.99.0",
     "prebuild": "^9.1.1",
     "run-script-os": "^1.0.3",
+    "tape": "^4.8.0",
     "targetpractice": "0.0.7"
   }
 }
