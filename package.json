@@ -1,6 +1,6 @@
 {
   "name": "robotjs_jm",
-  "version": "0.6.1",
+  "version": "35.0.1",
   "description": "Node.js Desktop Automation. Forked for JM Robotics",
   "main": "index.js",
   "typings": "index.d.ts",
@@ -9,7 +9,7 @@
     "test:darwin:linux": "jasmine test/**/*.js",
     "test-keyboard": "node test/keyboard.js",
     "test:win32": "jasmine test/**/*.js",
-    "install": "prebuild-install || node-gyp rebuild -std=c++17 --target=35.0.1 --arch=x64 --dist-url=https://electronjs.org/headers",
+    "install": "prebuild-install || node-gyp rebuild -std=c++19 --target=35.0.1 --arch=x64 --dist-url=https://electronjs.org/headers",
     "install-debug": "prebuild-install || node-gyp rebuild --target=35.0.1 --arch=x64 --dist-url=https://electronjs.org/headers --debug",
     "prebuild": "prebuild --all"
   },
