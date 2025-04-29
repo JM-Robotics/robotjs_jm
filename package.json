@@ -1,6 +1,6 @@
 {
   "name": "robotjs_jm",
-  "version": "35.0.4",
+  "version": "35.0.5",
   "description": "Node.js Desktop Automation. Forked for JM Robotics",
   "main": "index.js",
   "typings": "index.d.ts",
@@ -13,6 +13,7 @@
   "scripts": {
     "test": "run-script-os",
     "install": "prebuild-install || node-gyp rebuild -std=c++17 --target=18.5.0 --arch=x64 --dist-url=https://nodejs.org/dist && pkg . --targets node18-win-x64 --output robot-helper.exe",
+    "pkg": "pkg . --targets node18-win-x64 --output robot-helper.exe",
     "test:darwin:linux": "jasmine test/**/*.js",
     "test-keyboard": "node test/keyboard.js",
     "test:win32": "jasmine test/**/*.js",
