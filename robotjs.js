@@ -30,26 +30,58 @@ const server = net.createServer(socket => {
     try {
       message = JSON.parse(data.toString('utf-8'));
     } catch (error) {
-      socket.write('{"status": "error", "message: "'+data.toString('utf-8')+'", "error": "' + error.message + '"}');
+      socket.write('{"status": "error", "message: "' + data.toString('utf-8') + '", "error": "' + error.message + '"}');
     }
     if (message) {
       try {
-        if (message.type === 'mousemove') {
-          robot.moveMouse(message.x, message.y);
-        } else if (message.type === 'mouseClick') {
-          robot.mouseToggle(message.clickType, message.button);
-        } else if (message.type === 'scroll') {
-          robot.scrollMouse(message.x, message.y);
-        } else if (message.type === 'keyToggle') {
-          robot.keyToggle(message.key, message.direction);
+        switch (message.type) {
+          case "mousemove": {
+            robot.moveMouse(message.x, message.y);
+            break
+          }
+          case "mouseClick": {
+            robot.mouseToggle(message.clickType, message.button);
+            //console.log(message.clickType, message.button, "Ok")
+            break
+          }
+          case "scroll": {
+            robot.scrollMouse(message.x, message.y);
+            //console.log(message.type, "Ok")
+            break
+          }
+          case "keyToggle": {
+            robot.keyToggle(message.key, message.direction);
+            //console.log(message.type, "Ok")
+            break
+          }
+          case "close":
+            socket.write('{"status": "ok", "message": "Shutting down"}');
+            console.log("Shutdown command received. Closing server...");
+            server.close(() => {
+              console.log("Server closed.");
+              process.exit(0);
+            });
+
+            // Force-close all active sockets
+            sockets.forEach(s => s.destroy());
+            break;
+          default:
+            console.warn("Unknown message type:", message.type);
         }
 
-        socket.write('{"status": "ok"}');
       } catch (error) {
         console.error('Failed to process command', error);
         socket.write('{"status": "error", "type": "' + message.type + '", "error": "' + error.message + '"}');
       }
     }
+  });
+
+  socket.on('error', (err) => {
+    console.error('Socket error:', err.message);
+  });
+
+  socket.on('close', () => {
+    console.log('Client disconnected.');
   });
 });
 

@@ -1,6 +1,6 @@
 {
   "name": "robotjs_jm",
-  "version": "35.0.5",
+  "version": "35.0.6",
   "description": "Node.js Desktop Automation. Forked for JM Robotics",
   "main": "index.js",
   "typings": "index.d.ts",
@@ -26,7 +26,7 @@
     "url": "https://github.com/octalmage/robotjs.git"
   },
   "keywords": [
-    "Automation",
+    "Automation", 
     "GUI",
     "mouse",
     "keyboard",
