@@ -4,6 +4,8 @@
   },
   'targets': [{
     'target_name': 'robotjs',
+      'defines': [ 'NODE_ADDON_API_CPP_EXCEPTIONS' ],
+      'cflags_cc': [ '-fexceptions' ],
       'cflags!': [ '-fno-exceptions' ],
       'cflags_cc!': [ '-fno-exceptions' ],
       'xcode_settings': { 'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
@@ -16,7 +18,8 @@
         'OTHER_LDFLAGS': [
           '-arch x86_64',
           '-arch arm64'
-        ]
+        ],
+        'CLANG_CXX_LANGUAGE_STANDARD': 'c++17'
       },
       'msvs_settings': {
         'VCCLCompilerTool': { 'ExceptionHandling': 1 },
@@ -75,9 +78,6 @@
       'src/screengrab.c',
       'src/snprintf.c',
       'src/MMBitmap.c'
-    ],
-    'xcode_settings': {
-      'CLANG_CXX_LANGUAGE_STANDARD': 'c++17'
-    }    
+    ], 
   }]
 }
