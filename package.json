@@ -1,6 +1,6 @@
 {
   "name": "robotjs_jm",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "Node.js Desktop Automation. Forked for JM Robotics",
   "main": "index.js",
   "typings": "index.d.ts",
@@ -56,9 +56,6 @@
     "node-addon-api": "^8.3.0",
     "node-gyp-build": "^4.8.4"
   },
-
-
-
   "devDependencies": {
     "jasmine": "^2.99.0",
     "prebuildify": "^6.0.1",
