@@ -1,7 +1,7 @@
 {
-  "name": "@jitsi/robotjs",
-  "version": "0.6.21",
-  "description": "Node.js Desktop Automation.",
+  "name": "robotjs_jm",
+  "version": "0.6.1",
+  "description": "Node.js Desktop Automation. Forked for JM Robotics",
   "main": "index.js",
   "typings": "index.d.ts",
   "scripts": {
@@ -39,7 +39,7 @@
     "learning",
     "color"
   ],
-  "author": "Jason Stallings",
+  "author": "Jason Stallings, mads@jmrobotics.no",
   "license": "MIT",
   "gypfile": true,
   "binary": {
@@ -48,10 +48,11 @@
     ]
   },
   "bugs": {
-    "url": "https://github.com/jitsi/robotjs/issues"
+    "url": "https://github.com/maphstr/robotjs_jm/issues"
   },
-  "homepage": "https://github.com/jitsi/robotjs",
+  "homepage": "https://github.com/maphstr/robotjs_jm",
   "dependencies": {
+    "nan": "^2.16.0",
     "node-addon-api": "^8.3.0",
     "node-gyp-build": "^4.8.4"
   },
