@@ -123,7 +123,7 @@ void moveMouse(MMSignedPoint point)
 	Display *display = XGetMainDisplay();
 	XWarpPointer(display, None, DefaultRootWindow(display),
 	             0, 0, 0, 0, point.x, point.y);
-	XSync(display, false);
+	XFlush(display);
 #elif defined(IS_WINDOWS)
 
 	if(vscreenWidth<0 || vscreenHeight<0)
@@ -208,7 +208,7 @@ void toggleMouse(bool down, MMMouseButton button)
 #elif defined(USE_X11)
 	Display *display = XGetMainDisplay();
 	XTestFakeButtonEvent(display, button, down ? True : False, CurrentTime);
-	XSync(display, false);
+	XFlush(display);
 #elif defined(IS_WINDOWS)
 	INPUT mouseInput;
 	mouseInput.type = INPUT_MOUSE;
@@ -321,7 +321,7 @@ void scrollMouse(int x, int y)
 		XTestFakeButtonEvent(display, ydir, 0, CurrentTime);
 	}
 
-	XSync(display, false);
+	XFlush(display);
 
 #elif defined(IS_WINDOWS)
 
@@ -332,7 +332,8 @@ void scrollMouse(int x, int y)
 	mouseScrollInputs[0].mi.dwFlags = MOUSEEVENTF_WHEEL;
 	mouseScrollInputs[0].mi.time = 0;
 	mouseScrollInputs[0].mi.dwExtraInfo = 0;
-	mouseScrollInputs[0].mi.mouseData = y;
+	// Flip x to match other platforms.
+	mouseScrollInputs[0].mi.mouseData = -x;
 
 	mouseScrollInputs[1].type = INPUT_MOUSE;
 	mouseScrollInputs[1].mi.dx = 0;
@@ -340,8 +341,7 @@ void scrollMouse(int x, int y)
 	mouseScrollInputs[1].mi.dwFlags = MOUSEEVENTF_HWHEEL;
 	mouseScrollInputs[1].mi.time = 0;
 	mouseScrollInputs[1].mi.dwExtraInfo = 0;
-	// Flip x to match other platforms.
-	mouseScrollInputs[1].mi.mouseData = -x;
+	mouseScrollInputs[1].mi.mouseData = y;
 
 	SendInput(2, mouseScrollInputs, sizeof(INPUT));
 #endif

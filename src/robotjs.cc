@@ -998,4 +998,4 @@ Napi::Object InitAll(Napi::Env env, Napi::Object exports)
 	return exports;
 }
 
-NODE_API_MODULE(robotjs, InitAll)
+NAN_MODULE_WORKER_ENABLED(robotjs, InitAll)
