@@ -1,6 +1,6 @@
 {
   "name": "robotjs_jm",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Node.js Desktop Automation. Forked for JM Robotics",
   "main": "index.js",
   "typings": "index.d.ts",
@@ -9,7 +9,6 @@
     "test:darwin:linux": "jasmine test/**/*.js",
     "test-keyboard": "node test/keyboard.js",
     "test:win32": "jasmine test/**/*.js",
-<<<<<<< HEAD
     "install": "node-gyp-build",
     "prebuild": "prebuildify -t 20.0.0 --napi --strip",
     "prebuild-darwin-universal": "prebuildify -t 20.0.0 --napi --strip --arch x64+arm64",
@@ -18,11 +17,6 @@
     "prebuild-win32-x86": "prebuildify -t 20.0.0 --napi --strip",
     "prebuild-win32-x64": "prebuildify -t 20.0.0 --napi --strip",
     "prebuild-win32-arm64": "prebuildify -t 20.0.0 --napi --strip"
-=======
-    "install": "prebuild-install || node-gyp rebuild -std=c++17 --target=19.0.4 --arch=x64 --dist-url=https://electronjs.org/headers",
-    "install-debug": "prebuild-install || node-gyp rebuild --target=19.0.4 --arch=x64 --dist-url=https://electronjs.org/headers --debug",
-    "prebuild": "prebuild --all"
->>>>>>> 3f69311 (fixing build for electron 19.0.4)
   },
   "repository": {
     "type": "git",
