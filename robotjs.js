@@ -44,6 +44,7 @@ const server = net.createServer((socket) => {
           }
           case "keyToggle": {
             // Use unicodeTap for single non-ASCII characters, only on keydown
+            console.log("Received keyToggle command:", message.key, message.direction, message.modifier || message.modifiers);
             if (
               typeof message.key === "string" &&
               message.key.length === 1 &&
