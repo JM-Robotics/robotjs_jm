@@ -63,6 +63,23 @@ const server = net.createServer((socket) => {
               }
             }
 
+            // Special mapping for characters that require modifiers (e.g., #, @, etc.)
+            const specialCharMap = {
+              "#": { key: "3", modifiers: ["shift"] },
+              "@": { key: "2", modifiers: ["right_alt"] },
+              "$": { key: "4", modifiers: ["shift"] },
+              "&": { key: "6", modifiers: ["shift"] },
+              "{": { key: "7", modifiers: ["right_alt"] },
+              "[": { key: "8", modifiers: ["right_alt"] },
+              "]": { key: "9", modifiers: ["right_alt"] },
+              "}": { key: "0", modifiers: ["right_alt"] },
+              "|": { key: "<", modifiers: ["right_alt"] },
+              "\\": { key: "<", modifiers: ["shift"] },
+              "~": { key: "+", modifiers: ["right_alt"] },
+              "^": { key: "^", modifiers: ["shift"] },
+              // Add more as needed for your keyboard layout
+            };
+
             let normKey = reMapKey(message.key);
 
             // Track modifier state
@@ -76,11 +93,24 @@ const server = net.createServer((socket) => {
               return; // Don't send keyToggle for modifier keys themselves  
             }
             console.log("Active modifiers:", Array.from(activeModifiers));
-            // Special handling: if right-alt is held and key is 2 or @, always send keyToggle('2', direction, 'right_alt')
-            //if (activeModifiers.has("right_alt") && (normKey === "2" || normKey === "@")) {
-            //  robot.keyToggle("2", message.direction, "right_alt");
-            //  break;
-            //}
+
+            // Check if the key is a special character that needs modifiers
+            if (specialCharMap[message.key] && message.direction === "down") {
+              const { key: baseKey, modifiers } = specialCharMap[message.key];
+              // Press modifiers
+              for (const mod of modifiers) {
+                robot.keyToggle(mod, "down");
+              }
+              // Press base key
+              robot.keyToggle(baseKey, "down");
+              // Release base key
+              robot.keyToggle(baseKey, "up");
+              // Release modifiers
+              for (const mod of modifiers.reverse()) {
+                robot.keyToggle(mod, "up");
+              }
+              return
+            }
 
             // Normalize and validate key for robot.keyToggle
             let direction = message.direction;
@@ -102,7 +132,6 @@ const server = net.createServer((socket) => {
               throw error;
             }
 
-            //console.log(message.type, "Ok")
             break;
           }
           case "close":
