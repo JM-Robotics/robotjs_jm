@@ -17,7 +17,7 @@ extern "C"
 
 
 #if defined(IS_MACOSX)
-typedef enum _MMKeyFlags {
+typedef enum {
 	MOD_NONE = 0,
 	MOD_META = kCGEventFlagMaskCommand,
 	MOD_ALT = kCGEventFlagMaskAlternate,
@@ -26,23 +26,25 @@ typedef enum _MMKeyFlags {
 	MOD_SHIFT = kCGEventFlagMaskShift
 } MMKeyFlags;
 #elif defined(USE_X11)
-typedef enum _MMKeyFlags {
+typedef unsigned int MMKeyFlags;
+enum {
 	MOD_NONE = 0,
 	MOD_META = Mod4Mask,
 	MOD_ALT = Mod1Mask,
 	MOD_RIGHT_ALT = (1 << 30), /* Custom bit, not used by X11 */
 	MOD_CONTROL = ControlMask,
 	MOD_SHIFT = ShiftMask
-} MMKeyFlags;
+};
 #elif defined(IS_WINDOWS)
-typedef enum _MMKeyFlags {
+typedef unsigned int MMKeyFlags;
+enum {
 	MOD_NONE = 0,
 	MOD_META = MOD_WIN,
 	MOD_ALT = 0x0001,
 	MOD_RIGHT_ALT = 0x0002, /* Custom bit, not used by Win32 */
 	MOD_CONTROL = 0x0004,
 	MOD_SHIFT = 0x0008
-} MMKeyFlags;
+};
 #endif
 
 #if defined(IS_WINDOWS)
