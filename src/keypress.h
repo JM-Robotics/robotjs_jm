@@ -27,24 +27,20 @@ typedef enum {
 } MMKeyFlags;
 #elif defined(USE_X11)
 typedef unsigned int MMKeyFlags;
-enum {
-	MOD_NONE = 0,
-	MOD_META = Mod4Mask,
-	MOD_ALT = Mod1Mask,
-	MOD_RIGHT_ALT = (1 << 30), /* Custom bit, not used by X11 */
-	MOD_CONTROL = ControlMask,
-	MOD_SHIFT = ShiftMask
-};
+#define MOD_NONE 0
+#define MOD_META Mod4Mask
+#define MOD_ALT Mod1Mask
+#define MOD_RIGHT_ALT (1 << 30)
+#define MOD_CONTROL ControlMask
+#define MOD_SHIFT ShiftMask
 #elif defined(IS_WINDOWS)
 typedef unsigned int MMKeyFlags;
-enum {
-	MOD_NONE = 0,
-	MOD_META = MOD_WIN,
-	MOD_ALT = 0x0001,
-	MOD_RIGHT_ALT = 0x0002, /* Custom bit, not used by Win32 */
-	MOD_CONTROL = 0x0004,
-	MOD_SHIFT = 0x0008
-};
+#define MOD_NONE 0
+#define MOD_META MOD_WIN
+#define MOD_ALT 0x0001
+#define MOD_RIGHT_ALT 0x0002
+#define MOD_CONTROL 0x0004
+#define MOD_SHIFT 0x0008
 #endif
 
 #if defined(IS_WINDOWS)
