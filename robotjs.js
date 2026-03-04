@@ -57,7 +57,8 @@ const server = net.createServer((socket) => {
             if (MODIFIERKEYSNAMES.includes(normKey)) {
               if (message.direction === "down") {
                 activeModifiers.add(normKey);
-              } else if (message.direction === "up") {
+              } 
+              if (message.direction === "up") {
                 activeModifiers.delete(normKey);
               }
             }
@@ -145,6 +146,7 @@ server.listen(port, () => {
 });
 
 function reMapKey(key) {
+  console.log(key, "Original key");
   let normKey = key.toLowerCase();
   const RIGHTALTKEYSNAMES = ["right_alt", "altgr", "altgraph"];
   const LEFTALTKEYSNAMES = ["alt", "left_alt", "leftalt"];
@@ -168,5 +170,7 @@ function reMapKey(key) {
   if (normKey.toLowerCase() === "escape") key = "escape";
   if (normKey.toLowerCase() === "esc") key = "escape";
   if (normKey != " " && key.trim() === "") key = undefined;
-  return key;
+
+  console.log(normKey, "mapped key");
+  return normKey;
 }
