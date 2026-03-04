@@ -11,6 +11,8 @@
     "test-keyboard": "node test/keyboard.js",
     "test:win32": "jasmine test/**/*.js",
     "install": "node-gyp-build",
+    "build:native": "node-gyp rebuild -j max",
+    "clean:native": "node-gyp clean",    
     "postinstall": "npm run pkg",
     "prebuild": "prebuildify --napi --strip",
     "pkg": "pkg . --targets node18-win-x64 --output robot-helper.exe --assets \"prebuilds/**/*\"",
