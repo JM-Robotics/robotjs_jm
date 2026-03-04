@@ -59,24 +59,24 @@ const server = net.createServer((socket) => {
               if (message.direction === "down") {
                 console.log("Unicode tap", message.key, message.key.charCodeAt(0));
                 robot.unicodeTap(message.key.charCodeAt(0));
-                return; // Don't proceed to keyToggle for unicode characters
               }
+              return; // Don't proceed to keyToggle for unicode characters
             }
 
             // Special mapping for characters that require modifiers (e.g., #, @, etc.)
             const specialCharMap = {
-              "#": { key: "3", modifiers: ["shift"] },
-              "@": { key: "2", modifiers: ["right_alt"] },
-              "$": { key: "4", modifiers: ["shift"] },
-              "&": { key: "6", modifiers: ["shift"] },
-              "{": { key: "7", modifiers: ["right_alt"] },
-              "[": { key: "8", modifiers: ["right_alt"] },
-              "]": { key: "9", modifiers: ["right_alt"] },
-              "}": { key: "0", modifiers: ["right_alt"] },
-              "|": { key: "<", modifiers: ["right_alt"] },
-              "\\": { key: "<", modifiers: ["shift"] },
-              "~": { key: "+", modifiers: ["right_alt"] },
-              "^": { key: "^", modifiers: ["shift"] },
+              "#": "3",
+              "@": "2",
+              "$": "4",
+              "&": "6",
+              "{": "7",
+              "[": "8",
+              "]": "9",
+              "}": "0",
+              "|": "<",
+              "\\":"<",
+              "~": "+",
+              "^": "^",
               // Add more as needed for your keyboard layout
             };
 
@@ -95,21 +95,9 @@ const server = net.createServer((socket) => {
             console.log("Active modifiers:", Array.from(activeModifiers));
 
             // Check if the key is a special character that needs modifiers
-            if (specialCharMap[message.key] && message.direction === "down") {
-              const { key: baseKey, modifiers } = specialCharMap[message.key];
-              // Press modifiers
-              for (const mod of modifiers) {
-                robot.keyToggle(mod, "down");
-              }
-              // Press base key
-              robot.keyToggle(baseKey, "down");
-              // Release base key
-              robot.keyToggle(baseKey, "up");
-              // Release modifiers
-              for (const mod of modifiers.reverse()) {
-                robot.keyToggle(mod, "up");
-              }
-              return
+            if (specialCharMap[normKey] && message.direction === "down") {
+              console.log(`Special character '${normKey}' mapped to '${specialCharMap[normKey]}' `);
+              normKey = specialCharMap[normKey];
             }
 
             // Normalize and validate key for robot.keyToggle
