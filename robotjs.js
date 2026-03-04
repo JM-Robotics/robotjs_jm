@@ -37,7 +37,12 @@ const server = net.createServer(socket => {
             break
           }
           case "keyToggle": {
-            robot.keyToggle(message.key, message.direction);
+            // Use unicodeTap for single non-ASCII characters
+            if (typeof message.key === 'string' && message.key.length === 1 && message.key.charCodeAt(0) > 127) {
+              robot.unicodeTap(message.key.charCodeAt(0));
+            } else {
+              robot.keyToggle(message.key, message.direction);
+            }
             //console.log(message.type, "Ok")
             break
           }
