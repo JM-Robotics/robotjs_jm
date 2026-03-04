@@ -92,10 +92,9 @@ const server = net.createServer((socket) => {
               }
               return; // Don't send keyToggle for modifier keys themselves  
             }
-            console.log("Active modifiers:", Array.from(activeModifiers));
 
             // Check if the key is a special character that needs modifiers
-            if (specialCharMap[normKey] && message.direction === "down") {
+            if (specialCharMap[normKey]) {
               console.log(`Special character '${normKey}' mapped to '${specialCharMap[normKey]}' `);
               normKey = specialCharMap[normKey];
             }
