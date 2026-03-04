@@ -46,7 +46,21 @@ const server = net.createServer(socket => {
             ) {
               robot.unicodeTap(message.key.charCodeAt(0));
             } else {
-              robot.keyToggle(message.key, message.direction);
+              // Normalize modifier for right alt / altgr
+              let direction = message.direction;
+              let modifier = message.modifier || message.modifiers;
+              if (modifier) {
+                if (typeof modifier === 'string') {
+                  if (modifier.toLowerCase() === 'altgr' || modifier.toLowerCase() === 'right_alt') {
+                    modifier = 'right_alt';
+                  }
+                } else if (Array.isArray(modifier)) {
+                  modifier = modifier.map(m => (m.toLowerCase() === 'altgr' || m.toLowerCase() === 'right_alt') ? 'right_alt' : m);
+                }
+                robot.keyToggle(message.key, direction, modifier);
+              } else {
+                robot.keyToggle(message.key, direction);
+              }
             }
             //console.log(message.type, "Ok")
             break
