@@ -52,12 +52,11 @@ const server = net.createServer((socket) => {
             // Normalize key for modifier tracking
             let normKey = reMapKey(message.key);
 
-
             // Track modifier state
             if (MODIFIERKEYSNAMES.includes(normKey)) {
               if (message.direction === "down") {
                 activeModifiers.add(normKey);
-              } 
+              }
               if (message.direction === "up") {
                 activeModifiers.delete(normKey);
               }
@@ -65,41 +64,49 @@ const server = net.createServer((socket) => {
             }
             console.log("Active modifiers:", Array.from(activeModifiers));
             // Special handling: if right-alt is held and key is 2 or @, always send keyToggle('2', direction, 'right_alt')
-            //if (activeModifiers.has("right_alt") && (message.key === "2" || message.key === "@")) {
+            //if (activeModifiers.has("right_alt") && (normKey === "2" || normKey === "@")) {
             //  robot.keyToggle("2", message.direction, "right_alt");
             //  break;
             //}
             if (
-              typeof message.key === "string" &&
-              message.key.length === 1 &&
-              message.key.charCodeAt(0) > 127
+              typeof normKey === "string" &&
+              normKey.length === 1 &&
+              normKey.charCodeAt(0) > 127
             ) {
               if (message.direction === "down") {
-                console.log("Unicode tap",
-                  message.key,
-                  message.key.charCodeAt(0),
+                console.log(
+                  "Unicode tap",
+                  normKey,
+                  normKey.charCodeAt(0),
                 );
-                robot.unicodeTap(message.key.charCodeAt(0));
+                robot.unicodeTap(normKey.charCodeAt(0));
                 break;
               }
             }
             // Normalize and validate key for robot.keyToggle
             let direction = message.direction;
-            let key = message.key;
-
-
+            let key = normKey;
 
             let mods = Array.from(activeModifiers);
-            if (mods.length > 0) {
-              // Ensure mutually exclusive left/right alt
-              if (mods.includes("alt") && mods.includes("right_alt")) {
-                mods = mods.filter((m) => m !== "alt");
+            try {
+              if (mods.length > 0) {
+                // Ensure mutually exclusive left/right alt
+                if (mods.includes("alt") && mods.includes("right_alt")) {
+                  mods = mods.filter((m) => m !== "alt");
+                }
+                key = key.toLowerCase();
+                robot.keyToggle(key, direction, mods);
+              } else {
+                robot.keyToggle(key, direction);
               }
-              key = key.toLowerCase();
-              console.log("keyToggle", key, direction, mods);
-              robot.keyToggle(key, direction, mods);
-            } else {
-              robot.keyToggle(key, direction);
+            } catch (error) {
+              console.error("Error in keyToggle with", {
+                key,
+                direction,
+                mods,
+              });
+              console.error("Error in keyToggle:", error.message);
+              throw error;
             }
 
             //console.log(message.type, "Ok")
@@ -158,7 +165,6 @@ function reMapKey(key) {
   if (SHIFTKEYSNAMES.includes(normKey)) normKey = "shift";
   if (CONTROLKEYSNAMES.includes(normKey)) normKey = "control";
   if (METAKEYSNAMES.includes(normKey)) normKey = "command";
-
 
   if (normKey.toLowerCase() === "capslock") key = "caps_lock";
   if (normKey.toLowerCase() === "backspace") key = "backspace";
