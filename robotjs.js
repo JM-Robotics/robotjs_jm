@@ -59,7 +59,7 @@ const server = net.createServer((socket) => {
               if (message.direction === "down") {
                 console.log("Unicode tap", message.key, message.key.charCodeAt(0));
                 robot.unicodeTap(message.key.charCodeAt(0));
-                break;
+                return; // Don't proceed to keyToggle for unicode characters
               }
             }
 
@@ -73,7 +73,7 @@ const server = net.createServer((socket) => {
               if (message.direction === "up") {
                 activeModifiers.delete(normKey);
               }
-              break; // Don't send keyToggle for pure modifier keys
+              return; // Don't send keyToggle for modifier keys themselves  
             }
             console.log("Active modifiers:", Array.from(activeModifiers));
             // Special handling: if right-alt is held and key is 2 or @, always send keyToggle('2', direction, 'right_alt')
