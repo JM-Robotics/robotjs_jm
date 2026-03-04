@@ -64,20 +64,19 @@ const server = net.createServer((socket) => {
             }
             console.log("Active modifiers:", Array.from(activeModifiers));
             // Special handling: if right-alt is held and key is 2 or @, always send keyToggle('2', direction, 'right_alt')
-            if (activeModifiers.has("right_alt") && (message.key === "2" || message.key === "@")) {
-              robot.keyToggle("2", message.direction, "right_alt");
-              break;
-            }
+            //if (activeModifiers.has("right_alt") && (message.key === "2" || message.key === "@")) {
+            //  robot.keyToggle("2", message.direction, "right_alt");
+            //  break;
+            //}
             if (
               typeof message.key === "string" &&
               message.key.length === 1 &&
               message.key.charCodeAt(0) > 127
             ) {
               if (message.direction === "down") {
-                console.log(
+                console.log("Unicode tap",
                   message.key,
                   message.key.charCodeAt(0),
-                  "Unicode tap",
                 );
                 robot.unicodeTap(message.key.charCodeAt(0));
                 break;
@@ -146,7 +145,6 @@ server.listen(port, () => {
 });
 
 function reMapKey(key) {
-  console.log(key, "Original key");
   let normKey = key.toLowerCase();
   const RIGHTALTKEYSNAMES = ["right_alt", "altgr", "altgraph"];
   const LEFTALTKEYSNAMES = ["alt", "left_alt", "leftalt"];
@@ -171,6 +169,6 @@ function reMapKey(key) {
   if (normKey.toLowerCase() === "esc") key = "escape";
   if (normKey != " " && key.trim() === "") key = undefined;
 
-  console.log(normKey, "mapped key");
+  console.log("mapped key:", `'${key}' => '${normKey}'`);
   return normKey;
 }
