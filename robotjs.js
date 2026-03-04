@@ -50,7 +50,24 @@ const server = net.createServer((socket) => {
               message.key.charCodeAt(0) > 127
             ) {
               if (message.direction === "down") {
-                robot.unicodeTap(message.key.charCodeAt(0));
+                let code = message.key.charCodeAt(0);
+                // Handle uppercase for æ, ø, å if shift/caps is requested
+                let shift = false;
+                if (message.modifier || message.modifiers) {
+                  let mods = message.modifier || message.modifiers;
+                  if (typeof mods === "string") mods = [mods];
+                  if (Array.isArray(mods)) {
+                    shift = mods.some(
+                      (m) => m.toLowerCase() === "shift" || m.toLowerCase() === "capslock"
+                    );
+                  }
+                }
+                if (shift) {
+                  if (message.key === "æ") code = "Æ".charCodeAt(0);
+                  if (message.key === "ø") code = "Ø".charCodeAt(0);
+                  if (message.key === "å") code = "Å".charCodeAt(0);
+                }
+                robot.unicodeTap(code);
               }
             } else {
               // Normalize modifier for right alt / altgr
