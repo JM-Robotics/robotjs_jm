@@ -79,7 +79,6 @@ const server = net.createServer((socket) => {
                 activeModifiers.delete(normKey);
               }
             }
-            // Use unicodeTap for single non-ASCII characters, only on keydown
             console.log(
               "Received keyToggle command:",
               message.key,
@@ -142,6 +141,8 @@ const server = net.createServer((socket) => {
                 if (mods.includes("right_alt") && mods.includes("alt")) {
                   mods = mods.filter((m) => m !== "alt");
                 }
+                key = key.toLowerCase()
+                console.log("keyToggle",key, direction, mods)
                 robot.keyToggle(key, direction, mods);
               } else {
                 robot.keyToggle(key, direction);
