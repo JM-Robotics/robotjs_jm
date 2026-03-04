@@ -442,10 +442,14 @@ int CheckKeyFlags(const char* f, MMKeyFlags* flags)
 {
 	if (!flags) return -1;
 
-	if (strcmp(f, "alt") == 0 || strcmp(f, "right_alt") == 0)
-	{
-		*flags = MOD_ALT;
-	}
+	   if (strcmp(f, "alt") == 0)
+	   {
+		   *flags = MOD_ALT;
+	   }
+	   else if (strcmp(f, "right_alt") == 0 || strcmp(f, "altgr") == 0)
+	   {
+		   *flags = MOD_RIGHT_ALT;
+	   }
 	else if(strcmp(f, "command") == 0)
 	{
 		*flags = MOD_META;
