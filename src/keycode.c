@@ -23,41 +23,47 @@ struct XSpecialCharacterMapping {
 };
 
 struct XSpecialCharacterMapping XSpecialCharacterTable[] = {
-	{'~', XK_asciitilde},
-  	{'_', XK_underscore},
-  	{'[', XK_bracketleft},
-  	{']', XK_bracketright},
-  	{'!', XK_exclam},
-  	{'\'', XK_quotedbl},
-  	{'#', XK_numbersign},
-  	{'$', XK_dollar},
-  	{'%', XK_percent},
-  	{'&', XK_ampersand},
-  	{'\'', XK_quoteright},
-  	{'*', XK_asterisk},
-  	{'+', XK_plus},
-  	{',', XK_comma},
-  	{'-', XK_minus},
-  	{'.', XK_period},
-  	{'?', XK_question},
-  	{'<', XK_less},
-  	{'>', XK_greater},
-  	{'=', XK_equal},
-  	{'@', XK_at},
-  	{':', XK_colon},
-  	{';', XK_semicolon},
-  	{'\\', XK_backslash},
-  	{'`', XK_grave},
-  	{'{', XK_braceleft},
-  	{'}', XK_braceright},
-  	{'|', XK_bar},
-  	{'^', XK_asciicircum},
-  	{'(', XK_parenleft},
-  	{')', XK_parenright},
-  	{' ', XK_space},
-  	{'/', XK_slash},
-  	{'\t', XK_Tab},
-  	{'\n', XK_Return}
+	 {'~', XK_asciitilde},
+	{'_', XK_underscore},
+	{'[', XK_bracketleft},
+	{']', XK_bracketright},
+	{'!', XK_exclam},
+	{'\'', XK_quotedbl},
+	{'#', XK_numbersign},
+	{'$', XK_dollar},
+	{'%', XK_percent},
+	{'&', XK_ampersand},
+	{'\'', XK_quoteright},
+	{'*', XK_asterisk},
+	{'+', XK_plus},
+	{',', XK_comma},
+	{'-', XK_minus},
+	{'.', XK_period},
+	{'?', XK_question},
+	{'<', XK_less},
+	{'>', XK_greater},
+	{'=', XK_equal},
+	{'@', XK_at},
+	{':', XK_colon},
+	{';', XK_semicolon},
+	{'\\', XK_backslash},
+	{'`', XK_grave},
+	{'{', XK_braceleft},
+	{'}', XK_braceright},
+	{'|', XK_bar},
+	{'^', XK_asciicircum},
+	{'(', XK_parenleft},
+	{')', XK_parenright},
+	{' ', XK_space},
+	{'/', XK_slash},
+	{'\t', XK_Tab},
+	{'\n', XK_Return},
+	{'\xe6', 0x00e6}, /* æ */
+	{'\xf8', 0x00f8}, /* ø */
+	{'\xe5', 0x00e5}, /* å */
+	{'\xc6', 0x00c6}, /* Æ */
+	{'\xd8', 0x00d8}, /* Ø */
+	{'\xc5', 0x00c5}  /* Å */
 };
 
 #endif
@@ -65,44 +71,65 @@ struct XSpecialCharacterMapping XSpecialCharacterTable[] = {
 MMKeyCode keyCodeForChar(const char c)
 {
 #if defined(IS_MACOSX)
-	/* OS X does not appear to have a built-in function for this, so instead we
-	 * have to write our own. */
-	static CFMutableDictionaryRef charToCodeDict = NULL;
-	size_t code;
-	UniChar character = c;
-	CFStringRef charStr = NULL;
+   /* OS X does not appear to have a built-in function for this, so instead we
+	* have to write our own. */
+   static CFMutableDictionaryRef charToCodeDict = NULL;
+   size_t code;
+   UniChar character = c;
+   CFStringRef charStr = NULL;
 
-	/* Generate table of keycodes and characters. */
-	if (charToCodeDict == NULL) {
-		size_t i;
-		charToCodeDict = CFDictionaryCreateMutable(kCFAllocatorDefault,
-		                                           128,
-		                                           &kCFCopyStringDictionaryKeyCallBacks,
-		                                           NULL);
-		if (charToCodeDict == NULL) return UINT16_MAX;
+   /* Generate table of keycodes and characters. */
+   if (charToCodeDict == NULL) {
+	   size_t i;
+	   charToCodeDict = CFDictionaryCreateMutable(kCFAllocatorDefault,
+												  128,
+												  &kCFCopyStringDictionaryKeyCallBacks,
+												  NULL);
+	   if (charToCodeDict == NULL) return UINT16_MAX;
 
-		/* Loop through every keycode (0 - 127) to find its current mapping. */
-		for (i = 0; i < 128; ++i) {
-			CFStringRef string = createStringForKey((CGKeyCode)i);
-			if (string != NULL) {
-				CFDictionaryAddValue(charToCodeDict, string, (const void *)i);
-				CFRelease(string);
-			}
-		}
-	}
+	   /* Loop through every keycode (0 - 127) to find its current mapping. */
+	   for (i = 0; i < 128; ++i) {
+		   CFStringRef string = createStringForKey((CGKeyCode)i);
+		   if (string != NULL) {
+			   CFDictionaryAddValue(charToCodeDict, string, (const void *)i);
+			   CFRelease(string);
+		   }
+	   }
+   }
 
-	charStr = CFStringCreateWithCharacters(kCFAllocatorDefault, &character, 1);
+   charStr = CFStringCreateWithCharacters(kCFAllocatorDefault, &character, 1);
 
-	/* Our values may be NULL (0), so we need to use this function. */
-	if (!CFDictionaryGetValueIfPresent(charToCodeDict, charStr,
-	                                   (const void **)&code)) {
-		code = UINT16_MAX; /* Error */
-	}
+   if (!CFDictionaryGetValueIfPresent(charToCodeDict, charStr,
+									  (const void **)&code)) {
+	   // Fallback for æ, ø, å and uppercase
+	   switch ((unsigned char)c) {
+		   case 0xe6: code = 0x2b; break; /* æ */
+		   case 0xf8: code = 0x2c; break; /* ø */
+		   case 0xe5: code = 0x21; break; /* å */
+		   case 0xc6: code = 0x2b; break; /* Æ */
+		   case 0xd8: code = 0x2c; break; /* Ø */
+		   case 0xc5: code = 0x21; break; /* Å */
+		   default: code = UINT16_MAX; /* Error */
+	   }
+   }
 
-	CFRelease(charStr);
-	return (MMKeyCode)code;
+   CFRelease(charStr);
+   return (MMKeyCode)code;
 #elif defined(IS_WINDOWS)
-	return VkKeyScan(c);
+   SHORT vk = VkKeyScan(c);
+   if (vk == -1) {
+	   // Fallback for æ, ø, å and uppercase
+	   switch ((unsigned char)c) {
+		   case 0xe6: return 0x00e6; /* æ */
+		   case 0xf8: return 0x00f8; /* ø */
+		   case 0xe5: return 0x00e5; /* å */
+		   case 0xc6: return 0x00c6; /* Æ */
+		   case 0xd8: return 0x00d8; /* Ø */
+		   case 0xc5: return 0x00c5; /* Å */
+		   default: return -1;
+	   }
+   }
+   return vk;
 #elif defined(USE_X11)
 	MMKeyCode code;
 
