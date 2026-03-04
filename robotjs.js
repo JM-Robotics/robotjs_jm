@@ -44,7 +44,7 @@ const server = net.createServer((socket) => {
           }
           case "keyToggle": {
             // Use unicodeTap for single non-ASCII characters, only on keydown
-            console.log("Received keyToggle command:", message.key, message.direction, message.modifier || message.modifiers);
+            console.log("Received keyToggle command:", message.key, message.direction);
             if (
               typeof message.key === "string" &&
               message.key.length === 1 &&
@@ -55,37 +55,66 @@ const server = net.createServer((socket) => {
                 robot.unicodeTap(message.key.charCodeAt(0));
               }
             } else {
-              // Normalize modifier for right alt / altgr
+              // Normalize and validate key for robot.keyToggle
               let direction = message.direction;
-              let modifier = message.modifier || message.modifiers;
-              if (modifier) {
-                if (typeof modifier === "string") {
-                  if (
-                    modifier.toLowerCase() === "altgr" ||
-                    modifier.toLowerCase() === "right_alt"
-                  ) {
-                    modifier = "right_alt";
+              let key = message.key;
+              // Map common alternate key names to RobotJS expected names
+              if (typeof key === "string") {
+                if (key.toLowerCase() === "altgraph") key = "right_alt";
+                if (key.toLowerCase() === "altgr") key = "right_alt";
+                if (key.toLowerCase() === "control") key = "control";
+                if (key.toLowerCase() === "ctrl") key = "control";
+                if (key.toLowerCase() === "meta") key = "command";
+                if (key.toLowerCase() === "windows") key = "command";
+                if (key.toLowerCase() === "win") key = "command";
+                if (key.toLowerCase() === "capslock") key = "caps_lock";
+                if (key.toLowerCase() === "backspace") key = "backspace";
+                if (key.toLowerCase() === "shift") key = "shift";
+                if (key.toLowerCase() === "alt") key = "alt";
+                if (key.toLowerCase() === "right_alt") key = "right_alt";
+                if (key.toLowerCase() === "left_alt") key = "alt";
+                if (key.toLowerCase() === "tab") key = "tab";
+                if (key.toLowerCase() === "enter") key = "enter";
+                if (key.toLowerCase() === "return") key = "enter";
+                if (key.toLowerCase() === "escape") key = "escape";
+                if (key.toLowerCase() === "esc") key = "escape";
+                if (key.trim() === "") key = undefined;
+              }
+              // Only call robot.keyToggle if key is a non-empty string
+              if (typeof key === "string" && key.length > 0) {
+                let modifier = message.modifier || message.modifiers;
+                if (modifier) {
+                  if (typeof modifier === "string") {
+                    if (
+                      modifier.toLowerCase() === "altgr" ||
+                      modifier.toLowerCase() === "right_alt"
+                    ) {
+                      modifier = "right_alt";
+                    }
+                  } else if (Array.isArray(modifier)) {
+                    modifier = modifier.map((m) =>
+                      m.toLowerCase() === "altgr" ||
+                      m.toLowerCase() === "right_alt"
+                        ? "right_alt"
+                        : m,
+                    );
                   }
-                } else if (Array.isArray(modifier)) {
-                  modifier = modifier.map((m) =>
-                    m.toLowerCase() === "altgr" ||
-                    m.toLowerCase() === "right_alt"
-                      ? "right_alt"
-                      : m,
-                  );
-                }
-                // Ensure mutually exclusive left/right alt
-                if (Array.isArray(modifier)) {
-                  if (
-                    modifier.includes("right_alt") &&
-                    modifier.includes("alt")
-                  ) {
-                    modifier = modifier.filter((m) => m !== "alt");
+                  // Ensure mutually exclusive left/right alt
+                  if (Array.isArray(modifier)) {
+                    if (
+                      modifier.includes("right_alt") &&
+                      modifier.includes("alt")
+                    ) {
+                      modifier = modifier.filter((m) => m !== "alt");
+                    }
                   }
+                  robot.keyToggle(key, direction, modifier);
+                } else {
+                  robot.keyToggle(key, direction);
                 }
-                robot.keyToggle(message.key, direction, modifier);
               } else {
-                robot.keyToggle(message.key, direction);
+                // Optionally log or ignore invalid/empty keys
+                // console.warn("Ignored invalid keyToggle command:", message.key, direction);
               }
             }
             //console.log(message.type, "Ok")
