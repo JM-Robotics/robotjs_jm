@@ -72,6 +72,15 @@ const server = net.createServer((socket) => {
                       : m,
                   );
                 }
+                // Ensure mutually exclusive left/right alt
+                if (Array.isArray(modifier)) {
+                  if (
+                    modifier.includes("right_alt") &&
+                    modifier.includes("alt")
+                  ) {
+                    modifier = modifier.filter((m) => m !== "alt");
+                  }
+                }
                 robot.keyToggle(message.key, direction, modifier);
               } else {
                 robot.keyToggle(message.key, direction);
