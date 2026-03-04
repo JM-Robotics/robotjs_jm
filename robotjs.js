@@ -50,6 +50,19 @@ const server = net.createServer((socket) => {
           case "keyToggle": {
             // Modifier tracking logic
             // Normalize key for modifier tracking
+
+            if (
+              typeof message.key === "string" &&
+              message.key.length === 1 &&
+              message.key.charCodeAt(0) > 127
+            ) {
+              if (message.direction === "down") {
+                console.log("Unicode tap", message.key, message.key.charCodeAt(0));
+                robot.unicodeTap(message.key.charCodeAt(0));
+                break;
+              }
+            }
+
             let normKey = reMapKey(message.key);
 
             // Track modifier state
@@ -68,24 +81,9 @@ const server = net.createServer((socket) => {
             //  robot.keyToggle("2", message.direction, "right_alt");
             //  break;
             //}
-            if (
-              typeof normKey === "string" &&
-              normKey.length === 1 &&
-              normKey.charCodeAt(0) > 127
-            ) {
-              if (message.direction === "down") {
-                console.log(
-                  "Unicode tap",
-                  normKey,
-                  normKey.charCodeAt(0),
-                );
-                robot.unicodeTap(normKey.charCodeAt(0));
-                break;
-              }
-            }
+
             // Normalize and validate key for robot.keyToggle
             let direction = message.direction;
-            let key = normKey;
 
             let mods = Array.from(activeModifiers);
             try {
@@ -94,17 +92,12 @@ const server = net.createServer((socket) => {
                 if (mods.includes("alt") && mods.includes("right_alt")) {
                   mods = mods.filter((m) => m !== "alt");
                 }
-                key = key.toLowerCase();
-                robot.keyToggle(key, direction, mods);
+                robot.keyToggle(normKey, direction, mods);
               } else {
-                robot.keyToggle(key, direction);
+                robot.keyToggle(normKey, direction);
               }
             } catch (error) {
-              console.error("Error in keyToggle with", {
-                key,
-                direction,
-                mods,
-              });
+              console.error("Error in keyToggle with", normKey, direction, mods);
               console.error("Error in keyToggle:", error.message);
               throw error;
             }
@@ -166,15 +159,14 @@ function reMapKey(key) {
   if (CONTROLKEYSNAMES.includes(normKey)) normKey = "control";
   if (METAKEYSNAMES.includes(normKey)) normKey = "command";
 
-  if (normKey.toLowerCase() === "capslock") key = "caps_lock";
-  if (normKey.toLowerCase() === "backspace") key = "backspace";
-
-  if (normKey.toLowerCase() === "tab") key = "tab";
-  if (normKey.toLowerCase() === "enter") key = "enter";
-  if (normKey.toLowerCase() === "return") key = "enter";
-  if (normKey.toLowerCase() === "escape") key = "escape";
-  if (normKey.toLowerCase() === "esc") key = "escape";
-  if (normKey != " " && key.trim() === "") key = undefined;
+  if (normKey === "capslock") normKey = "caps_lock";
+  if (normKey === "backspace") normKey = "backspace";
+  if (normKey === "tab") normKey = "tab";
+  if (normKey === "enter") normKey = "enter";
+  if (normKey === "return") normKey = "enter";
+  if (normKey === "escape") normKey = "escape";
+  if (normKey === "esc") normKey = "escape";
+  if (normKey != " " && normKey.trim() === "") normKey = undefined;
 
   console.log("mapped key:", `'${key}' => '${normKey}'`);
   return normKey;
