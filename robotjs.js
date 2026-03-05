@@ -1,6 +1,7 @@
 // Track currently pressed modifier keys
 const activeModifiers = new Set();
 
+const { dir } = require('console');
 const net = require('net');
 const path = require('path');
 
@@ -13,15 +14,16 @@ const DEFAULT_PORT = 13337;
 const port = parseInt(process.argv[2], 10) || DEFAULT_PORT;
 
 const MODIFIERKEYSNAMES = ['alt', 'right_alt', 'shift', 'control', 'command'];
-
 robot.setMouseDelay(1);
+
+var lastKeyWasCommand = false;
 
 function specialMap(key) {
     const specialCharMap = {
         '!': '1',
         '"': '2',
         '#': '3',
-        "$": '4',
+        $: '4',
         '%': '5',
         '&': '6',
         '/': '7',
@@ -51,7 +53,7 @@ function specialMap(key) {
         '>': '.',
         '<': '<',
 
-        "_": '-',
+        _: '-',
         '+': '+',
     };
     if (specialCharMap[key]) {
@@ -87,9 +89,6 @@ const server = net.createServer((socket) => {
                         break;
                     }
                     case 'keyToggle': {
-                        // Modifier tracking logic
-                        // Normalize key for modifier tracking
-
                         if (typeof message.key === 'string' && message.key.length === 1 && message.key.charCodeAt(0) > 127) {
                             if (message.direction === 'down') {
                                 console.log('Unicode tap', message.key, message.key.charCodeAt(0));
@@ -98,8 +97,8 @@ const server = net.createServer((socket) => {
                             return; // Don't proceed to keyToggle for unicode characters
                         }
 
-                        // Special mapping for characters that require modifiers (e.g., #, @, etc.)
-
+                        //normalize key altGraph to right_alt etc.
+                        const direction = message.direction;
                         let normKey = reMapKey(message.key);
 
                         // Track modifier state
@@ -110,31 +109,28 @@ const server = net.createServer((socket) => {
                             if (message.direction === 'up') {
                                 activeModifiers.delete(normKey);
                             }
-                            return; // Don't send keyToggle for modifier keys themselves
+                        } else {
+                          // Check if the key is a special character that needs modifiers
+                            //normKey = specialMap(normKey);
                         }
 
-                        // Check if the key is a special character that needs modifiers
-                        normKey = specialMap(normKey);
 
-                        let direction = message.direction;
-
-                        let mods = Array.from(activeModifiers);
                         try {
-                            if (mods.length > 0) {
-                                // Ensure mutually exclusive left/right alt
-                                if (mods.includes('alt') && mods.includes('right_alt')) {
-                                    mods = mods.filter((m) => m !== 'alt');
-                                }
-                                console.log('Sending keyToggle with modifiers:', normKey, direction, mods);
-                                robot.keyToggle(normKey, direction, mods);
-                            } else {
-                                robot.keyToggle(normKey, direction);
+                            robot.keyToggle(normKey, direction);
+
+                            //as command may remove focus from sending window, add this to make sure it is relased.
+                            if (lastKeyWasCommand && normKey != "command" && direction === 'up') {
+                                lastKeyWasCommand = false;
+                                activeModifiers.delete('command'); // Clear command key to prevent it getting stuck. Command is usually a single key modifier and not used in combinations, so this is a simple way to prevent it from getting stuck.
+                                robot.keyToggle('command', 'up');
                             }
-                            activeModifiers.delete("command"); // Clear command key to prevent it getting stuck. Command is usually a single key modifier and not used in combinations, so this is a simple way to prevent it from getting stuck.
+                            if (normKey === 'command' && direction === 'down') {
+                                lastKeyWasCommand = true;
+                            }
+
                         } catch (error) {
-                            console.error('Error in keyToggle with', normKey, direction, mods);
-                            console.error('Error in keyToggle:', error.message);
-                            throw error;
+                            console.error(`Error in keyToggle for key '${normKey}', '${normKey.charCodeAt(0)}', with direction '${direction}':`);
+                            console.error(error.message, error);
                         }
 
                         break;
@@ -199,3 +195,5 @@ function reMapKey(key) {
     //console.log('mapped key:', `'${key}' => '${normKey}'`);
     return normKey;
 }
+
+//
