@@ -83,9 +83,11 @@ server.listen(port, () => {
 
 function keyTap(data) {
     const normalizedKey = normalizeKey(data.key);
-    if (normalizedKey != data.key) {
-        console.log(`Normalized key: '${data.key}' => '${normalizedKey}'`);
-        robot.keyToggle(normalizedKey, data.direction);
+    if (normalizedKey != data.key.toLowerCase()) {
+        if (data.direction === 'down') {
+            console.log(`Normalized key: '${data.key}' => '${normalizedKey}'`);
+            robot.keyToggle(normalizedKey, data.direction);
+        }
     } else {
         if (data.keyCode > 127) {
             const charFromKey = data.key.charCodeAt(0);
