@@ -1,3 +1,0 @@
-    "install": "prebuild-install || node-gyp rebuild --target=20.1.4 --arch=x64 --dist-url=https://electronjs.org/headers",
-    "install-debug": "prebuild-install || node-gyp rebuild --target=20.1.4 --arch=x64 --dist-url=https://electronjs.org/headers --debug",
-    "prebuild": "prebuild --all"
