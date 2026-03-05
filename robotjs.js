@@ -87,7 +87,7 @@ function keyTap(data) {
         console.log(`Normalized key: '${data.key}' => '${normKey}'`);
         robot.keyToggle(normKey, data.direction);
     } else {
-        if (data.keyCode > 127) {
+        if (data.keyCode > 127 && data.keyCode != 225) {
             if (data.direction === 'down') {
                 const charFromKey = data.key.charCodeAt(0);
                 console.log(`unicodeTap: '${data.keyCode}', '${data.key}'  => ('${charFromKey}')`);
@@ -104,14 +104,14 @@ function keyTap(data) {
 function normalizeKey(key) {
     let normKey = key.toLowerCase();
     let isModifier = false;
-    //const RIGHTALTKEYSNAMES = ['right_alt', 'altgr', 'altgraph'];
+    const RIGHTALTKEYSNAMES = ['right_alt', 'altgr', 'altgraph'];
     const LEFTALTKEYSNAMES = ['alt', 'left_alt', 'leftalt'];
     const SHIFTKEYSNAMES = ['shift'];
     const CONTROLKEYSNAMES = ['control', 'ctrl'];
     const METAKEYSNAMES = ['meta', 'windows', 'win', 'command'];
 
     const MODIFERS = {
-        right_alt: RIGHTALTKEYSNAMES,
+        //right_alt: RIGHTALTKEYSNAMES,
         alt: LEFTALTKEYSNAMES,
         shift: SHIFTKEYSNAMES,
         control: CONTROLKEYSNAMES,
