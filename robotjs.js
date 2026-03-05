@@ -117,10 +117,11 @@ function normalizeKey(key) {
         control: CONTROLKEYSNAMES,
         command: METAKEYSNAMES,
     };
-    for (let key of Object.keys(MODIFERS)) {
-        if (MODIFERS[key].includes(normKey)) {
-            normKey = key;
+    for (let modifierType of Object.keys(MODIFERS)) {
+        if (MODIFERS[modifierType].includes(normKey)) {
+            normKey = modifierType;
             isModifier = true;
+            console.log(`Normalized modifier key: '${key}' => '${normKey}'`);
             break;
         }
     }
