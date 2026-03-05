@@ -1,6 +1,6 @@
 {
   "name": "robotjs_jm",
-  "version": "36.0.3",
+  "version": "36.0.4",
   "description": "Node.js Desktop Automation. Forked for JM Robotics",
   "main": "index.js",
   "typings": "index.d.ts",
@@ -12,7 +12,7 @@
     "test:win32": "jasmine test/**/*.js",
     "install": "node-gyp-build",
     "build:native": "node-gyp rebuild -j max && pkg . --targets node18-win-x64 --output robot-helper.exe --assets \"build/Release/*.node\"",
-    "clean:native": "node-gyp clean && rm robot-helper.exe",    
+    "clean:native": "node-gyp clean && rm robot-helper.exe",
     "postinstall": "npm run pkg",
     "prebuild": "prebuildify --napi --strip",
     "pkg": "pkg . --targets node18-win-x64 --output robot-helper.exe --assets \"prebuilds/**/*\"",
