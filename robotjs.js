@@ -84,10 +84,10 @@ server.listen(port, () => {
 function keyTap(data) {
     const { normKey, isModifier } = normalizeKey(data.key);
     if (isModifier) {
-        console.log(`Normalized key: '${data.key}' => '${normKey}'`);
+        console.log(`Toggling normalized key: '${data.key}' => '${normKey}'`);
         robot.keyToggle(normKey, data.direction);
     } else {
-        if (data.keyCode > 127) {
+        if (data.keyCode > 127 && data.key.length === 1) {
             if (data.direction === 'down') {
                 const charFromKey = data.key.charCodeAt(0);
                 console.log(`unicodeTap: '${data.keyCode}', '${data.key}'  => ('${charFromKey}')`);
