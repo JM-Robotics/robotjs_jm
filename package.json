@@ -1,6 +1,6 @@
 {
   "name": "robotjs_jm",
-  "version": "36.0.4",
+  "version": "36.0.3",
   "description": "Node.js Desktop Automation. Forked for JM Robotics",
   "main": "index.js",
   "typings": "index.d.ts",
@@ -11,15 +11,17 @@
     "test-keyboard": "node test/keyboard.js",
     "test:win32": "jasmine test/**/*.js",
     "install": "node-gyp-build",
+    "build:native": "node-gyp rebuild -j max",
+    "clean:native": "node-gyp clean",    
     "postinstall": "npm run pkg",
-    "prebuild": "prebuildify -t 20.0.0 --napi --strip",
+    "prebuild": "prebuildify --napi --strip",
     "pkg": "pkg . --targets node18-win-x64 --output robot-helper.exe --assets \"prebuilds/**/*\"",
-    "prebuild-darwin-universal": "prebuildify -t 20.0.0 --napi --strip --arch x64+arm64",
-    "prebuild-linux-x64": "prebuildify -t 20.0.0 --napi --strip",
-    "prebuild-linux-arm64": "prebuildify -t 20.0.0 --napi --strip",
-    "prebuild-win32-x86": "prebuildify -t 20.0.0 --napi --strip",
-    "prebuild-win32-x64": "prebuildify -t 20.0.0 --napi --strip",
-    "prebuild-win32-arm64": "prebuildify -t 20.0.0 --napi --strip"
+    "prebuild-darwin-universal": "prebuildify --napi --strip --arch x64+arm64",
+    "prebuild-linux-x64": "prebuildify --napi --strip",
+    "prebuild-linux-arm64": "prebuildify --napi --strip",
+    "prebuild-win32-x86": "prebuildify --napi --strip",
+    "prebuild-win32-x64": "prebuildify --napi --strip",
+    "prebuild-win32-arm64": "prebuildify --napi --strip"
   },
   "repository": {
     "type": "git",
@@ -45,11 +47,6 @@
   "author": "Jason Stallings, mads@jmrobotics.no",
   "license": "MIT",
   "gypfile": true,
-  "binary": {
-    "napi_versions": [
-      3
-    ]
-  },
   "bugs": {
     "url": "https://github.com/maphstr/robotjs_jm/issues"
   },
@@ -65,7 +62,8 @@
     "run-script-os": "^1.0.3",
     "tape": "^4.8.0",
     "targetpractice": "0.0.7",
-    "pkg": "^5.8.1"
+    "pkg": "^5.8.1",
+    "prettier": "^3.4.2"
   },
   "overrides": {
     "targetpractice": {
