@@ -88,7 +88,7 @@ function keyTap(data) {
     setThisCall = false;
     const { normKey, isModifier } = normalizeKey(data.key);
     if (isModifier) {
-        console.log(`Toggling normalized key: '${data.key}' => '${normKey}'`);
+        //console.log(`Toggling normalized key: '${data.key}' => '${normKey}'`);
         if (normKey == 'right_alt') {
             rightAltModifer = data.direction === 'down';
         } else {
@@ -107,12 +107,12 @@ function keyTap(data) {
         if (data.keyCode > 127 && data.key.length === 1) {
             if (data.direction === 'down') {
                 const charFromKey = data.key.charCodeAt(0);
-                console.log(`unicodeTap: '${data.keyCode}', '${data.key}'  => ('${charFromKey}')`);
+                //console.log(`unicodeTap: '${data.keyCode}', '${data.key}'  => ('${charFromKey}')`);
                 robot.unicodeTap(charFromKey);
             }
         } else {
             const charFromCode = String.fromCharCode(data.keyCode);
-            console.log(`keyToggling keyCode: '${data.keyCode}', '${data.key}' => ('${charFromCode}'). Direction: ${data.direction}, rightAltModifier: ${rightAltModifer ? 'right_alt' : []}`);
+            //console.log(`keyToggling keyCode: '${data.keyCode}', '${data.key}' => ('${charFromCode}'). Direction: ${data.direction}, rightAltModifier: ${rightAltModifer ? 'right_alt' : []}`);
             robot.keyToggle(charFromCode, data.direction, rightAltModifer ? 'right_alt' : []);
         }
     }
