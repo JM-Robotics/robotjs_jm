@@ -112,8 +112,8 @@ function keyTap(data) {
             }
         } else {
             const charFromCode = String.fromCharCode(data.keyCode);
-            console.log(`keyToggling keyCode: '${data.keyCode}', '${data.key}' => ('${charFromCode}'). Direction: ${data.direction}, rightAltModifier: ${rightAltModifer}`);
-            robot.keyToggle(charFromCode, data.direction, rightAltModifer ? 'right_alt' : "");
+            console.log(`keyToggling keyCode: '${data.keyCode}', '${data.key}' => ('${charFromCode}'). Direction: ${data.direction}, rightAltModifier: ${rightAltModifer ? 'right_alt' : []}`);
+            robot.keyToggle(charFromCode, data.direction, rightAltModifer ? 'right_alt' : []);
         }
     }
     if (lastKeyWasCommand && !setThisCall) {
