@@ -110,24 +110,25 @@ const server = net.createServer((socket) => {
                                 activeModifiers.delete(normKey);
                             }
                         } else {
-                          // Check if the key is a special character that needs modifiers
+                            // Check if the key is a special character that needs modifiers
                             //normKey = specialMap(normKey);
                         }
 
-
                         try {
+                            console.log('keyToggle', normKey, direction, 'Active modifiers:', Array.from(activeModifiers));
                             robot.keyToggle(normKey, direction);
 
                             //as command may remove focus from sending window, add this to make sure it is relased.
-                            if (lastKeyWasCommand && normKey != "command" && direction === 'up') {
+                            if (lastKeyWasCommand && normKey != 'command' && direction === 'up') {
                                 lastKeyWasCommand = false;
                                 activeModifiers.delete('command'); // Clear command key to prevent it getting stuck. Command is usually a single key modifier and not used in combinations, so this is a simple way to prevent it from getting stuck.
                                 robot.keyToggle('command', 'up');
+                                console.log('Released command key');
                             }
                             if (normKey === 'command' && direction === 'down') {
+                                console.log('Command key pressed, setting lastKeyWasCommand to true');
                                 lastKeyWasCommand = true;
                             }
-
                         } catch (error) {
                             console.error(`Error in keyToggle for key '${normKey}', '${normKey.charCodeAt(0)}', with direction '${direction}':`);
                             console.error(error.message, error);
