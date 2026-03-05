@@ -83,8 +83,13 @@ server.listen(port, () => {
 
 function keyTap(data) {
   const charFromCode = String.fromCharCode(data.keyCode);
-  console.log(`Received keyTap for keyCode: '${data.keyCode}' => ('${charFromCode}'). Direction: ${data.direction}`);
-  robot.keyToggle(charFromCode, data.direction);
+  if(data.keyCode >127) {
+    console.log(`unicodeTap: '${data.keyCode}' => ('${charFromCode}')`);
+    robot.unicodeTap(data.keyCode)
+  } else {
+    console.log(`keyToggiling keyCode: '${data.keyCode}' => ('${charFromCode}'). Direction: ${data.direction}`);
+    robot.keyToggle(charFromCode, data.direction);
+  }
 }
 
 function normalizeKey(key) {
