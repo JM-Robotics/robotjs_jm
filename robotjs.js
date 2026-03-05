@@ -82,8 +82,8 @@ server.listen(port, () => {
 });
 
 function keyTap(data) {
-    const normalizedKey = normalizeKey(data.key);
-    if (normalizedKey != data.key.toLowerCase()) {
+    const { normalizedKey, isModifier } = normalizeKey(data.key);
+    if (isModifier) {
         if (data.direction === 'down') {
             console.log(`Normalized key: '${data.key}' => '${normalizedKey}'`);
             robot.keyToggle(normalizedKey, data.direction);
@@ -103,17 +103,27 @@ function keyTap(data) {
 
 function normalizeKey(key) {
     let normKey = key.toLowerCase();
+    let isModifier = false;
     const RIGHTALTKEYSNAMES = ['right_alt', 'altgr', 'altgraph'];
     const LEFTALTKEYSNAMES = ['alt', 'left_alt', 'leftalt'];
     const SHIFTKEYSNAMES = ['shift'];
     const CONTROLKEYSNAMES = ['control', 'ctrl'];
     const METAKEYSNAMES = ['meta', 'windows', 'win', 'command'];
 
-    if (RIGHTALTKEYSNAMES.includes(normKey)) normKey = 'right_alt';
-    if (LEFTALTKEYSNAMES.includes(normKey)) normKey = 'alt';
-    if (SHIFTKEYSNAMES.includes(normKey)) normKey = 'shift';
-    if (CONTROLKEYSNAMES.includes(normKey)) normKey = 'control';
-    if (METAKEYSNAMES.includes(normKey)) normKey = 'command';
+    const MODIFERS = {
+        right_alt: RIGHTALTKEYSNAMES,
+        alt: LEFTALTKEYSNAMES,
+        shift: SHIFTKEYSNAMES,
+        control: CONTROLKEYSNAMES,
+        command: METAKEYSNAMES,
+    };
+    for (let key of Object.keys(MODIFERS)) {
+        if (MODIFERS[key].includes(normKey)) {
+            normKey = key;
+            isModifier = true;
+            break;
+        }
+    }
 
     if (normKey === 'capslock') normKey = 'caps_lock';
     if (normKey === 'backspace') normKey = 'backspace';
@@ -125,7 +135,7 @@ function normalizeKey(key) {
     if (normKey != ' ' && normKey.trim() === '') normKey = undefined;
 
     //console.log('mapped key:', `'${key}' => '${normKey}'`);
-    return normKey;
+    return { normKey, isModifier };
 }
 
 function specialMap(key) {
