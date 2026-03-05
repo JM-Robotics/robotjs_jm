@@ -135,10 +135,10 @@ void toggleKeyCode(MMKeyCode code, const bool down, MMKeyFlags flags)
 	   assert(keyEvent != NULL);
 
 	   CGEventSetType(keyEvent, down ? kCGEventKeyDown : kCGEventKeyUp);
-	   // If MOD_RIGHT_ALT, use kVK_RightOption
+	   // If MOD_RIGHT_ALT, set keyboard type to ANSI (0)
 	   if (flags & MOD_RIGHT_ALT) {
 		   CGEventSetFlags(keyEvent, kCGEventFlagMaskAlternate);
-		   CGEventSetKeyboardType(keyEvent, kVK_RightOption);
+		   CGEventSetIntegerValueField(keyEvent, kCGKeyboardEventKeyboardType, 0);
 	   } else {
 		   CGEventSetFlags(keyEvent, flags);
 	   }
