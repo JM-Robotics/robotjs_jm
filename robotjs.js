@@ -81,11 +81,28 @@ server.listen(port, () => {
     console.log(`RobotJS Helper listening on port ${port} (admin)`);
 });
 
+var lastKeyWasCommand = false;
+var rightAltModifer = false;
+
 function keyTap(data) {
+    setThisCall = false;
     const { normKey, isModifier } = normalizeKey(data.key);
     if (isModifier) {
         console.log(`Toggling normalized key: '${data.key}' => '${normKey}'`);
-        robot.keyToggle(normKey, data.direction);
+        if (normKey == 'right_alt') {
+            rightAltModifer = data.direction === 'down';
+        } else {
+          robot.keyToggle(normKey, data.direction);
+        }
+
+        if (normKey === 'command') {
+            if (data.direction === 'down') {
+                lastKeyWasCommand = true;
+                setThisCall = true;
+            } else {
+                lastKeyWasCommand = false;
+            }
+        }
     } else {
         if (data.keyCode > 127 && data.key.length === 1) {
             if (data.direction === 'down') {
@@ -95,9 +112,13 @@ function keyTap(data) {
             }
         } else {
             const charFromCode = String.fromCharCode(data.keyCode);
-            console.log(`keyToggling keyCode: '${data.keyCode}', '${data.key}' => ('${charFromCode}'). Direction: ${data.direction}`);
-            robot.keyToggle(charFromCode, data.direction);
+            console.log(`keyToggling keyCode: '${data.keyCode}', '${data.key}' => ('${charFromCode}'). Direction: ${data.direction}, rightAltModifier: ${rightAltModifer}`);
+            robot.keyToggle(charFromCode, data.direction, rightAltModifer ? 'right_alt' : undefined);
         }
+    }
+    if (lastKeyWasCommand && !setThisCall) {
+        robot.keyToggle('command', 'up');
+        lastKeyWasCommand = false;
     }
 }
 
@@ -111,11 +132,11 @@ function normalizeKey(key) {
     const METAKEYSNAMES = ['meta', 'windows', 'win', 'command'];
 
     const MODIFERS = {
-        "right_alt": RIGHTALTKEYSNAMES,
-        "alt": LEFTALTKEYSNAMES,
-        "shift": SHIFTKEYSNAMES,
-        "control": CONTROLKEYSNAMES,
-        "command": METAKEYSNAMES,
+        right_alt: RIGHTALTKEYSNAMES,
+        alt: LEFTALTKEYSNAMES,
+        shift: SHIFTKEYSNAMES,
+        control: CONTROLKEYSNAMES,
+        command: METAKEYSNAMES,
     };
     for (let modifierType of Object.keys(MODIFERS)) {
         if (MODIFERS[modifierType].includes(normKey)) {
