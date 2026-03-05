@@ -83,7 +83,7 @@ server.listen(port, () => {
 
 function keyTap(data) {
     if (data.keyCode > 127) {
-        const charFromKey = data.key.toCharCode(0);
+        const charFromKey = data.key.charCodeAt(0);
         console.log(`unicodeTap: '${data.keyCode}', '${data.key}'  => ('${charFromKey}')`);
         robot.unicodeTap();
     } else {
