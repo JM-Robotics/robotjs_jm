@@ -64,7 +64,12 @@
       }],
 
       ["OS=='win'", {
-        'defines': ['IS_WINDOWS']
+        'defines': ['IS_WINDOWS'],
+          "msvs_settings": {
+            "VCCLCompilerTool": {
+              "AdditionalOptions": [ "/std:c++17" ]
+            }
+          }
       }]
     ],
     
