@@ -1,7 +1,3 @@
-// Track currently pressed modifier keys
-const activeModifiers = new Set();
-
-const { dir } = require('console');
 const net = require('net');
 const path = require('path');
 
@@ -158,50 +154,3 @@ function normalizeKey(key) {
     //console.log('mapped key:', `'${key}' => '${normKey}'`);
     return { normKey, isModifier };
 }
-
-function specialMap(key) {
-    const specialCharMap = {
-        '!': '1',
-        '"': '2',
-        '#': '3',
-        $: '4',
-        '%': '5',
-        '&': '6',
-        '/': '7',
-        '(': '8',
-        ')': '9',
-        '=': '0',
-
-        '@': '2',
-        '{': '7',
-        '[': '8',
-        ']': '9',
-        '}': '0',
-
-        '|': '<',
-        '\\': '<',
-
-        '~': '+',
-        '^': '^',
-        '?': '+',
-
-        '*': "'",
-        "'": "'",
-
-        ':': '.',
-        ';': ',',
-
-        '>': '.',
-        '<': '<',
-
-        _: '-',
-        '+': '+',
-    };
-    if (specialCharMap[key]) {
-        console.log(`Special character '${key}' mapped to '${specialCharMap[key]}' `);
-        return specialCharMap[key];
-    }
-    return key;
-}
-
-//
