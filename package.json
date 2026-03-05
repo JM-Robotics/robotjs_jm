@@ -1,6 +1,6 @@
 {
   "name": "robotjs_jm",
-  "version": "37.0.1",
+  "version": "37.0.2",
   "description": "Node.js Desktop Automation. Forked for JM Robotics",
   "main": "index.js",
   "typings": "index.d.ts",
