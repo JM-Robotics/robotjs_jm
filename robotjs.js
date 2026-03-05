@@ -82,11 +82,11 @@ server.listen(port, () => {
 });
 
 function keyTap(data) {
-    const { normalizedKey, isModifier } = normalizeKey(data.key);
+    const { normKey, isModifier } = normalizeKey(data.key);
     if (isModifier) {
         if (data.direction === 'down') {
-            console.log(`Normalized key: '${data.key}' => '${normalizedKey}'`);
-            robot.keyToggle(normalizedKey, data.direction);
+            console.log(`Normalized key: '${data.key}' => '${normKey}'`);
+            robot.keyToggle(normKey, data.direction);
         }
     } else {
         if (data.keyCode > 127) {
