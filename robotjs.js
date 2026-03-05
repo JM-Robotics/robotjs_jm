@@ -24,7 +24,7 @@ const server = net.createServer((socket) => {
             socket.write('{"status": "error", "message: "' + data.toString('utf-8') + '", "error": "' + error.message + '"}');
         }
         if (message) {
-            try {
+          try {
                 switch (message.type) {
                     case 'mousemove': {
                         robot.moveMouse(message.x, message.y);
@@ -85,7 +85,7 @@ function keyTap(data) {
     if (data.keyCode > 127) {
         const charFromKey = data.key.charCodeAt(0);
         console.log(`unicodeTap: '${data.keyCode}', '${data.key}'  => ('${charFromKey}')`);
-        robot.unicodeTap();
+        robot.unicodeTap(charFromKey);
     } else {
         const normalizedKey = normalizeKey(data.key);
         if (normalizedKey != data.key) {
