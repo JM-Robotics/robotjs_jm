@@ -104,7 +104,7 @@ function keyTap(data) {
 function normalizeKey(key) {
     let normKey = key.toLowerCase();
     let isModifier = false;
-    const RIGHTALTKEYSNAMES = ['right_alt', 'altgr', 'altgraph'];
+    //const RIGHTALTKEYSNAMES = ['right_alt', 'altgr', 'altgraph'];
     const LEFTALTKEYSNAMES = ['alt', 'left_alt', 'leftalt'];
     const SHIFTKEYSNAMES = ['shift'];
     const CONTROLKEYSNAMES = ['control', 'ctrl'];
@@ -121,7 +121,6 @@ function normalizeKey(key) {
         if (MODIFERS[modifierType].includes(normKey)) {
             normKey = modifierType;
             isModifier = true;
-            console.log(`Normalized modifier key: '${key}' => '${normKey}'`);
             break;
         }
     }
