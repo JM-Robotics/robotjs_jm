@@ -87,7 +87,7 @@ function keyTap(data) {
         console.log(`Normalized key: '${data.key}' => '${normKey}'`);
         robot.keyToggle(normKey, data.direction);
     } else {
-        if (data.keyCode > 127 && data.keyCode != 225) {
+        if (data.keyCode > 127) {
             if (data.direction === 'down') {
                 const charFromKey = data.key.charCodeAt(0);
                 console.log(`unicodeTap: '${data.keyCode}', '${data.key}'  => ('${charFromKey}')`);
@@ -95,7 +95,7 @@ function keyTap(data) {
             }
         } else {
             const charFromCode = String.fromCharCode(data.keyCode);
-            console.log(`keyToggling keyCode: '${data.keyCode}' => ('${charFromCode}'). Direction: ${data.direction}`);
+            console.log(`keyToggling keyCode: '${data.keyCode}', '${data.key}' => ('${charFromCode}'). Direction: ${data.direction}`);
             robot.keyToggle(charFromCode, data.direction);
         }
     }
@@ -111,11 +111,11 @@ function normalizeKey(key) {
     const METAKEYSNAMES = ['meta', 'windows', 'win', 'command'];
 
     const MODIFERS = {
-        //right_alt: RIGHTALTKEYSNAMES,
-        alt: LEFTALTKEYSNAMES,
-        shift: SHIFTKEYSNAMES,
-        control: CONTROLKEYSNAMES,
-        command: METAKEYSNAMES,
+        "right_alt": RIGHTALTKEYSNAMES,
+        "alt": LEFTALTKEYSNAMES,
+        "shift": SHIFTKEYSNAMES,
+        "control": CONTROLKEYSNAMES,
+        "command": METAKEYSNAMES,
     };
     for (let modifierType of Object.keys(MODIFERS)) {
         if (MODIFERS[modifierType].includes(normKey)) {
