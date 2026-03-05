@@ -125,6 +125,7 @@ const server = net.createServer((socket) => {
                                 if (mods.includes('alt') && mods.includes('right_alt')) {
                                     mods = mods.filter((m) => m !== 'alt');
                                 }
+                                console.log('Sending keyToggle with modifiers:', normKey, direction, mods);
                                 robot.keyToggle(normKey, direction, mods);
                             } else {
                                 robot.keyToggle(normKey, direction);
@@ -195,6 +196,6 @@ function reMapKey(key) {
     if (normKey === 'esc') normKey = 'escape';
     if (normKey != ' ' && normKey.trim() === '') normKey = undefined;
 
-    console.log('mapped key:', `'${key}' => '${normKey}'`);
+    //console.log('mapped key:', `'${key}' => '${normKey}'`);
     return normKey;
 }
