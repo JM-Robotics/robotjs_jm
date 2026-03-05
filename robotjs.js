@@ -24,7 +24,7 @@ const server = net.createServer((socket) => {
             socket.write('{"status": "error", "message: "' + data.toString('utf-8') + '", "error": "' + error.message + '"}');
         }
         if (message) {
-          try {
+            try {
                 switch (message.type) {
                     case 'mousemove': {
                         robot.moveMouse(message.x, message.y);
@@ -82,15 +82,15 @@ server.listen(port, () => {
 });
 
 function keyTap(data) {
-    if (data.keyCode > 127) {
-        const charFromKey = data.key.charCodeAt(0);
-        console.log(`unicodeTap: '${data.keyCode}', '${data.key}'  => ('${charFromKey}')`);
-        robot.unicodeTap(charFromKey);
+    const normalizedKey = normalizeKey(data.key);
+    if (normalizedKey != data.key) {
+        console.log(`Normalized key: '${data.key}' => '${normalizedKey}'`);
+        robot.keyToggle(normalizedKey, data.direction);
     } else {
-        const normalizedKey = normalizeKey(data.key);
-        if (normalizedKey != data.key) {
-            console.log(`Normalized key: '${data.key}' => '${normalizedKey}'`);
-            robot.keyToggle(normalizedKey, data.direction);
+        if (data.keyCode > 127) {
+            const charFromKey = data.key.charCodeAt(0);
+            console.log(`unicodeTap: '${data.keyCode}', '${data.key}'  => ('${charFromKey}')`);
+            robot.unicodeTap(charFromKey);
         } else {
             const charFromCode = String.fromCharCode(data.keyCode);
             console.log(`keyToggling keyCode: '${data.keyCode}' => ('${charFromCode}'). Direction: ${data.direction}`);
