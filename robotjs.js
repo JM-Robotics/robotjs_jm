@@ -15,7 +15,6 @@ const port = parseInt(process.argv[2], 10) || DEFAULT_PORT;
 
 robot.setMouseDelay(1);
 
-
 const server = net.createServer((socket) => {
     socket.on('data', async (data) => {
         let message;
@@ -39,13 +38,14 @@ const server = net.createServer((socket) => {
                         robot.scrollMouse(message.x, message.y);
                         break;
                     }
-                    case 'keyToggle': { //old method used by pilot v <= 1.54
+                    case 'keyToggle': {
+                        //old method used by pilot v <= 1.54
                         robot.keyToggle(message.key, message.direction);
                         break;
                     }
                     case 'keyTap': {
-                      keyTap(message)
-                      break;
+                        keyTap(message);
+                        break;
                     }
                     case 'close':
                         socket.write('{"status": "ok", "message": "Shutting down"}');
@@ -82,14 +82,21 @@ server.listen(port, () => {
 });
 
 function keyTap(data) {
-  const charFromCode = String.fromCharCode(data.keyCode);
-  if(data.keyCode >127) {
-    console.log(`unicodeTap: '${data.keyCode}' => ('${charFromCode}')`);
-    robot.unicodeTap(data.keyCode)
-  } else {
-    console.log(`keyToggiling keyCode: '${data.keyCode}' => ('${charFromCode}'). Direction: ${data.direction}`);
-    robot.keyToggle(charFromCode, data.direction);
-  }
+    if (data.keyCode > 127) {
+        const charFromKey = data.key.toCharCode(0);
+        console.log(`unicodeTap: '${data.keyCode}', '${data.key}'  => ('${charFromKey}')`);
+        robot.unicodeTap();
+    } else {
+        const normalizedKey = normalizeKey(data.key);
+        if (normalizedKey != data.key) {
+            console.log(`Normalized key: '${data.key}' => '${normalizedKey}'`);
+            robot.keyToggle(normalizedKey, data.direction);
+        } else {
+            const charFromCode = String.fromCharCode(data.keyCode);
+            console.log(`keyToggling keyCode: '${data.keyCode}' => ('${charFromCode}'). Direction: ${data.direction}`);
+            robot.keyToggle(charFromCode, data.direction);
+        }
+    }
 }
 
 function normalizeKey(key) {
