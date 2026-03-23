@@ -79,12 +79,40 @@ server.listen(port, () => {
 
 var lastKeyWasCommand = false;
 var rightAltModifer = false;
+const keysToNotTranslate = [
+    "up",
+    "right",
+    "down",
+    "left",
+    "CapsLock",
+    "End",
+    "Insert",
+    "Home",
+    "PageUp",
+    "PageDown",
+    "Delete",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "0",
+    "NumLock",
+    "/",
+    "*",
+    "-",
+    ","
+]
 
 function keyTap(data) {
     setThisCall = false;
     const { normKey, isModifier } = normalizeKey(data.key);
+    console.log(`Toggling normalized key: '${data.key}' => '${normKey}'`);
     if (isModifier) {
-        //console.log(`Toggling normalized key: '${data.key}' => '${normKey}'`);
         if (normKey == 'right_alt') {
             rightAltModifer = data.direction === 'down';
         } else {
@@ -103,13 +131,20 @@ function keyTap(data) {
         if (data.keyCode > 127 && data.key.length === 1) {
             if (data.direction === 'down') {
                 const charFromKey = data.key.charCodeAt(0);
-                //console.log(`unicodeTap: '${data.keyCode}', '${data.key}'  => ('${charFromKey}')`);
+                console.log(`unicodeTap: '${data.keyCode}', '${data.key}'  => ('${charFromKey}')`);
                 robot.unicodeTap(charFromKey);
             }
         } else {
-            const charFromCode = String.fromCharCode(data.keyCode);
-            //console.log(`keyToggling keyCode: '${data.keyCode}', '${data.key}' => ('${charFromCode}'). Direction: ${data.direction}, rightAltModifier: ${rightAltModifer ? 'right_alt' : []}`);
-            robot.keyToggle(charFromCode, data.direction, rightAltModifer ? 'right_alt' : []);
+            let togglingKey;
+            if(keysToNotTranslate.includes(data.key)) {
+                togglingKey = normKey
+                console.log(`keyToggling key: '${togglingKey}' from '${data.key}', . Direction: ${data.direction}, rightAltModifier: ${rightAltModifer}`);
+                robot.keyToggle(togglingKey, data.direction, rightAltModifer ? 'right_alt' : []);
+            } else {
+                togglingKey =  String.fromCharCode(data.keyCode);
+                console.log(`keyToggling keyCode: '${togglingKey}' from '${data.keyCode}'. data.key was ${data.key}. Direction: ${data.direction}, rightAltModifier: ${rightAltModifer}`);
+                robot.keyToggle(togglingKey, data.direction, rightAltModifer ? 'right_alt' : []);
+            }
         }
     }
     if (lastKeyWasCommand && !setThisCall) {
@@ -142,13 +177,14 @@ function normalizeKey(key) {
         }
     }
 
-    if (normKey === 'capslock') normKey = 'caps_lock';
+    if (normKey === 'capslock') normKey = 'capslock';
     if (normKey === 'backspace') normKey = 'backspace';
     if (normKey === 'tab') normKey = 'tab';
     if (normKey === 'enter') normKey = 'enter';
     if (normKey === 'return') normKey = 'enter';
     if (normKey === 'escape') normKey = 'escape';
     if (normKey === 'esc') normKey = 'escape';
+    if (normKey === 'numlock') normKey = 'numpad_lock';
     if (normKey != ' ' && normKey.trim() === '') normKey = undefined;
 
     //console.log('mapped key:', `'${key}' => '${normKey}'`);
