@@ -10,6 +10,9 @@
 #include "microsleep.h"
 #if defined(USE_X11)
 	#include "xdisplay.h"
+	#if defined(__linux__)
+		#include "wayland_eis.h"
+	#endif
 #endif
 
 //Global delays.
@@ -96,6 +99,24 @@ Napi::Value updateScreenMetricsWrapper(const Napi::CallbackInfo& info)
 	updateScreenMetrics();
 
 	return Napi::Number::New(env, 1);
+}
+
+Napi::Value initWaylandMouseWrapper(const Napi::CallbackInfo& info)
+{
+	Napi::Env env = info.Env();
+	Napi::Object result = Napi::Object::New(env);
+#if defined(USE_X11) && defined(__linux__)
+	bool active = waylandSessionActive();
+	bool initialized = active && waylandMouseInit();
+	result.Set("active", Napi::Boolean::New(env, active));
+	result.Set("initialized", Napi::Boolean::New(env, initialized));
+	result.Set("backend", Napi::String::New(env, initialized ? "kwin-eis" : ""));
+#else
+	result.Set("active", Napi::Boolean::New(env, false));
+	result.Set("initialized", Napi::Boolean::New(env, false));
+	result.Set("backend", Napi::String::New(env, ""));
+#endif
+	return result;
 }
 
 Napi::Value moveMouseWrapper(const Napi::CallbackInfo& info)
@@ -941,6 +962,9 @@ Napi::Object InitAll(Napi::Env env, Napi::Object exports)
 
 	exports.Set(Napi::String::New(env, "updateScreenMetrics"),
 				Napi::Function::New(env, updateScreenMetricsWrapper));
+
+	exports.Set(Napi::String::New(env, "initWaylandMouse"),
+				Napi::Function::New(env, initWaylandMouseWrapper));
 
 	exports.Set(Napi::String::New(env, "moveMouse"),
 				Napi::Function::New(env, moveMouseWrapper));

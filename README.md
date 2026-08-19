@@ -109,7 +109,11 @@ Please ensure you have the required dependencies before installing:
   * Python (v2.7 recommended, v3.x.x is not supported).
   * make.
   * A C/C++ compiler like GCC.
-  * libxtst-dev and libpng++-dev (`sudo apt-get install libxtst-dev libpng++-dev`).
+  * libxtst-dev, libpng++-dev, libdbus-1-dev, and libei-dev (`sudo apt-get install libxtst-dev libpng++-dev libdbus-1-dev libei-dev`).
+
+### KDE Wayland mouse control
+
+On KDE Wayland, mouse operations use KWin's RemoteDesktop EIS interface through libei. Absolute coordinates use KWin's global output regions, so movement works across monitors regardless of the RobotJS caller's window position. Windows, macOS, and X11 keep their existing RobotJS backends.
 
 Install node-gyp using npm:
 

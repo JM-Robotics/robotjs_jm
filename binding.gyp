@@ -49,17 +49,22 @@
       }],
       
       ['OS == "linux"', {
+        'include_dirs': [
+          '<!@(pkg-config --cflags-only-I dbus-1 libei-1.0 | sed -e "s/-I//g")'
+        ],
         'link_settings': {
           'libraries': [
             '-lpng',
             '-lz',
             '-lX11',
-            '-lXtst'
+            '-lXtst',
+            '<!@(pkg-config --libs dbus-1 libei-1.0)'
           ]
         },
         
         'sources': [
-          'src/xdisplay.c'
+          'src/xdisplay.c',
+          'src/wayland_eis.c'
         ]
       }],
 

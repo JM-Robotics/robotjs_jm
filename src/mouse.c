@@ -10,8 +10,10 @@
 #elif defined(USE_X11)
 	#include <X11/Xlib.h>
 	#include <X11/extensions/XTest.h>
+	#include <linux/input-event-codes.h>
 	#include <stdlib.h>
 	#include "xdisplay.h"
+	#include "wayland_eis.h"
 #endif
 
 #if !defined(M_SQRT2)
@@ -120,6 +122,9 @@ void moveMouse(MMSignedPoint point)
 	CGEventPost(kCGSessionEventTap, move);
 	CFRelease(move);
 #elif defined(USE_X11)
+	if (waylandSessionActive()) {
+		if (waylandMouseMoveAbsolute(point.x, point.y)) return;
+	}
 	Display *display = XGetMainDisplay();
 	XWarpPointer(display, None, DefaultRootWindow(display),
 	             0, 0, 0, 0, point.x, point.y);
@@ -206,6 +211,11 @@ void toggleMouse(bool down, MMMouseButton button)
 	CGEventPost(kCGSessionEventTap, event);
 	CFRelease(event);
 #elif defined(USE_X11)
+	if (waylandSessionActive()) {
+		unsigned int buttonCode = button == LEFT_BUTTON ? BTN_LEFT
+			: (button == RIGHT_BUTTON ? BTN_RIGHT : BTN_MIDDLE);
+		if (waylandMouseButton(buttonCode, down)) return;
+	}
 	Display *display = XGetMainDisplay();
 	XTestFakeButtonEvent(display, button, down ? True : False, CurrentTime);
 	XFlush(display);
@@ -286,6 +296,7 @@ void scrollMouse(int x, int y)
 	CFRelease(event);
 
 #elif defined(USE_X11)
+	if (waylandSessionActive() && waylandMouseScroll(x, y)) return;
 
 	/*
 	X11 Mouse Button Numbering

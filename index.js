@@ -1,5 +1,27 @@
 var robotjs = require('node-gyp-build')(__dirname);
 
+var waylandMouseConfigured = false;
+
+function configureWaylandMouse()
+{
+    if (waylandMouseConfigured || process.platform !== 'linux' || process.env.XDG_SESSION_TYPE !== 'wayland') {
+        return;
+    }
+    var status = robotjs.initWaylandMouse();
+    if (!status.initialized) {
+        throw new Error('robotjs_jm could not initialize KWin EIS for Wayland mouse control');
+    }
+    waylandMouseConfigured = true;
+}
+
+['moveMouse', 'moveMouseSmooth', 'dragMouse', 'mouseClick', 'mouseToggle', 'scrollMouse'].forEach(function(name) {
+    var nativeFunction = robotjs[name];
+    robotjs[name] = function() {
+        configureWaylandMouse();
+        return nativeFunction.apply(robotjs, arguments);
+    };
+});
+
 module.exports = robotjs;
 
 module.exports.screen = {};

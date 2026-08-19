@@ -21,6 +21,7 @@ export function typeStringDelayed(string: string, cpm: number) : void
 export function setMouseDelay(delay: number) : void
 export function updateScreenMetrics() : void
 export function moveMouse(x: number, y: number) : void
+export function initWaylandMouse() : { active: boolean; initialized: boolean; backend: string }
 export function moveMouseSmooth(x: number, y: number,speed?:number) : void
 export function mouseClick(button?: string, double?: boolean) : void
 export function mouseToggle(down?: string, button?: string) : void
