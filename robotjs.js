@@ -1,5 +1,9 @@
 const net = require('net');
 const path = require('path');
+const {
+    createJsonLineDecoder,
+    encodeJsonLine,
+} = require('./json-line-protocol');
 
 const baseDir = process.pkg ? path.dirname(process.execPath) : __dirname;
 
@@ -12,14 +16,9 @@ const port = parseInt(process.argv[2], 10) || DEFAULT_PORT;
 robot.setMouseDelay(1);
 
 const server = net.createServer((socket) => {
-    socket.on('data', async (data) => {
-        let message;
-        try {
-            message = JSON.parse(data.toString('utf-8'));
-        } catch (error) {
-            socket.write('{"status": "error", "message: "' + data.toString('utf-8') + '", "error": "' + error.message + '"}');
-        }
-        if (message) {
+    const send = (message) => socket.write(encodeJsonLine(message));
+    const decoder = createJsonLineDecoder({
+        onMessage: (message) => {
             try {
                 switch (message.type) {
                     case 'mousemove': {
@@ -44,7 +43,7 @@ const server = net.createServer((socket) => {
                         break;
                     }
                     case 'close':
-                        socket.write('{"status": "ok", "message": "Shutting down"}');
+                        send({ status: 'ok', message: 'Shutting down' });
                         console.log('Shutdown command received. Closing server...');
                         server.close(() => {
                             console.log('Server closed.');
@@ -59,10 +58,16 @@ const server = net.createServer((socket) => {
                 }
             } catch (error) {
                 console.error('Failed to process command', error);
-                socket.write('{"status": "error", "type": "' + message.type + '", "error": "' + error.message + '"}');
+                send({ status: 'error', type: message.type, error: error.message });
             }
-        }
+        },
+        onError: (error) => {
+            console.error('Failed to parse framed command', error.message);
+            send({ status: 'error', type: 'protocol', error: error.code || 'JSON_LINE_INVALID_FRAME' });
+        },
     });
+
+    socket.on('data', (data) => decoder.push(data));
 
     socket.on('error', (err) => {
         console.error('Socket error:', err.message);
