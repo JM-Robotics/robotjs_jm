@@ -172,9 +172,9 @@ I like AutoHotkey, but I like Node.js more. By developing RobotJS I get an AutoH
 
 ## Publishing
 
-On every push to main branch, the .github/workflows/ci.yml will create a new version and publish to npm.
+Pushes to `master` do not build or publish automatically. Pull requests run the build matrix without publishing. Maintainers can also dispatch `.github/workflows/ci.yml` manually for any branch, tag, or commit; only an exact `v<package-version>` tag is eligible for npm publication.
 
-If a major or minor release is required, use respective key words in the commit message, see https://github.com/phips28/gh-action-bump-version#workflow
+From a clean, synchronized `master` checkout, run `./gitBuild.sh <version>` to update `package.json` and `package-lock.json`, commit and push that version, create its immutable version tag, and dispatch the workflow. Omitting the argument releases the version already in the package files. Before making those Git changes, the script requires the selected version to be greater than every version already published on npm. This restriction applies only to `gitBuild.sh`; ordinary manual commits, tags, and pushes remain unaffected. The workflow repeats the check before starting its build matrix.
 
 ## License
 

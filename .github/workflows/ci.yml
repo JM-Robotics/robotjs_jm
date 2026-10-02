@@ -1,22 +1,90 @@
 name: CI
+run-name: robotjs_jm from ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref_name }}
 
 on:
   pull_request:
-  push:
-    branches:
-      - master
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch, tag, or commit SHA to build
+        required: true
+        default: master
+        type: string
 
 concurrency:
-  group: ${{ github.ref }}
+  group: robotjs-jm-${{ github.event_name }}-${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref }}
   cancel-in-progress: true
 
 permissions:
-  contents: write
-  id-token: write
+  contents: read
 
 jobs:
+  metadata:
+    name: Resolve source and publication eligibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      publish_npm: ${{ steps.metadata.outputs.publish_npm }}
+      source_sha: ${{ steps.metadata.outputs.source_sha }}
+      version: ${{ steps.metadata.outputs.version }}
+    steps:
+    - name: Checkout requested source
+      uses: actions/checkout@v6
+      with:
+        ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.event.pull_request.head.sha }}
+        fetch-depth: 0
+    - name: Resolve source and tag gate
+      id: metadata
+      shell: bash
+      env:
+        EVENT_NAME: ${{ github.event_name }}
+        REQUESTED_REF: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.event.pull_request.head.sha }}
+      run: |
+        set -euo pipefail
+        VERSION="$(node -p 'require("./package.json").version')"
+        SOURCE_SHA="$(git rev-parse HEAD)"
+        PUBLISH_NPM=false
+
+        if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+          TAG_NAME=""
+          if [[ "$REQUESTED_REF" == refs/tags/* ]]; then
+            TAG_NAME="${REQUESTED_REF#refs/tags/}"
+          elif git show-ref --verify --quiet "refs/tags/${REQUESTED_REF}"; then
+            TAG_NAME="$REQUESTED_REF"
+          fi
+
+          if [[ -n "$TAG_NAME" ]]; then
+            TAG_SHA="$(git rev-parse "refs/tags/${TAG_NAME}^{commit}")"
+            if [[ "$TAG_SHA" != "$SOURCE_SHA" ]]; then
+              echo "Requested ref resolved to ${SOURCE_SHA}, but tag ${TAG_NAME} points to ${TAG_SHA}." >&2
+              exit 1
+            fi
+            if [[ "$TAG_NAME" != "v${VERSION}" ]]; then
+              echo "Tag/version mismatch: expected v${VERSION}, got ${TAG_NAME}." >&2
+              exit 1
+            fi
+            PACKAGE_NAME="$(node -p 'require("./package.json").name')"
+            npm view "$PACKAGE_NAME" versions --json --registry=https://registry.npmjs.org \
+              | node .github/scripts/assert-version-newer.cjs "$VERSION"
+            PUBLISH_NPM=true
+          fi
+        fi
+
+        {
+          echo "publish_npm=${PUBLISH_NPM}"
+          echo "source_sha=${SOURCE_SHA}"
+          echo "version=${VERSION}"
+        } >> "$GITHUB_OUTPUT"
+
+        if [[ "$PUBLISH_NPM" == true ]]; then
+          echo "Tag v${VERSION} matches package version ${VERSION}; this run will publish to npm."
+        else
+          echo "Source ${REQUESTED_REF} is not an exact version tag; this run will retain build artifacts only."
+        fi
+
   build:
     name: Build ${{ matrix.build-group }}
+    needs: metadata
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -44,6 +112,8 @@ jobs:
       BUILD_GROUP: ${{ matrix.build-group }}
     steps:
     - uses: actions/checkout@v6
+      with:
+        ref: ${{ needs.metadata.outputs.source_sha }}
     - uses: actions/setup-node@v6
       with:
         node-version: '20'
@@ -52,6 +122,8 @@ jobs:
       if: ${{ (matrix.build-group == 'linux-x64') || (matrix.build-group == 'linux-arm64') }}
       run: sudo apt-get install libxtst-dev libpng++-dev
     - run: npm ci
+    - name: Test helper protocol framing
+      run: npm run test:protocol
     - name: Prebuildify
       run: npm run prebuild-$BUILD_GROUP
       shell: bash
@@ -62,23 +134,24 @@ jobs:
         if-no-files-found: error
   publish:
     name: Publish to npm
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    environment: release
-    runs-on: ubuntu-latest
-    needs: build
+    if: needs.metadata.outputs.publish_npm == 'true'
+  environment: release
+  runs-on: ubuntu-latest
+  permissions:
+    contents: read
+    id-token: write
+  needs:
+      - metadata
+      - build
     steps:
     - uses: actions/checkout@v6
+      with:
+        ref: ${{ needs.metadata.outputs.source_sha }}
     - uses: actions/download-artifact@v7
       with:
         pattern: prebuilds-*
         path: prebuilds
         merge-multiple: true
-    - uses: phips28/gh-action-bump-version@71473b25295fe3907df2ff87cce295a0dce1b20b
-      with:
-        tag-prefix: 'v'
-        version-type: 'patch'
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - uses: actions/setup-node@v6
       with:
         node-version: '24'
