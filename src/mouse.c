@@ -108,7 +108,7 @@ void updateScreenMetrics()
  * Move the mouse to a specific point.
  * @param point The coordinates to move the mouse to (x, y).
  */
-void moveMouse(MMSignedPoint point)
+bool moveMouse(MMSignedPoint point)
 {
 #if defined(IS_MACOSX)
 	CGEventRef move = CGEventCreateMouseEvent(NULL, kCGEventMouseMoved,
@@ -119,11 +119,13 @@ void moveMouse(MMSignedPoint point)
 
 	CGEventPost(kCGSessionEventTap, move);
 	CFRelease(move);
+	return true;
 #elif defined(USE_X11)
 	Display *display = XGetMainDisplay();
 	XWarpPointer(display, None, DefaultRootWindow(display),
 	             0, 0, 0, 0, point.x, point.y);
 	XFlush(display);
+	return true;
 #elif defined(IS_WINDOWS)
 
 	if(vscreenWidth<0 || vscreenHeight<0)
@@ -142,7 +144,7 @@ void moveMouse(MMSignedPoint point)
 	mouseInput.mi.dwFlags = MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE | MOUSEEVENTF_VIRTUALDESK;
 	mouseInput.mi.time = 0; //System will provide the timestamp
 
-	SendInput(1, &mouseInput, sizeof(mouseInput));
+	return SendInput(1, &mouseInput, sizeof(mouseInput)) == 1;
 #endif
 }
 
@@ -194,7 +196,7 @@ MMPoint getMousePos()
  * @param down   True for down, false for up.
  * @param button The button to press down or release.
  */
-void toggleMouse(bool down, MMMouseButton button)
+bool toggleMouse(bool down, MMMouseButton button)
 {
 #if defined(IS_MACOSX)
 	const CGPoint currentPos = CGPointFromMMPoint(getMousePos());
@@ -205,10 +207,12 @@ void toggleMouse(bool down, MMMouseButton button)
 	                                           (CGMouseButton)button);
 	CGEventPost(kCGSessionEventTap, event);
 	CFRelease(event);
+	return true;
 #elif defined(USE_X11)
 	Display *display = XGetMainDisplay();
 	XTestFakeButtonEvent(display, button, down ? True : False, CurrentTime);
 	XFlush(display);
+	return true;
 #elif defined(IS_WINDOWS)
 	INPUT mouseInput;
 	mouseInput.type = INPUT_MOUSE;
@@ -218,7 +222,7 @@ void toggleMouse(bool down, MMMouseButton button)
 	mouseInput.mi.time = 0; //System will provide the timestamp
 	mouseInput.mi.dwExtraInfo = 0;
 	mouseInput.mi.mouseData = 0;
-	SendInput(1, &mouseInput, sizeof(mouseInput));
+	return SendInput(1, &mouseInput, sizeof(mouseInput)) == 1;
 #endif
 }
 
@@ -264,7 +268,7 @@ void doubleClick(MMMouseButton button)
 #endif
 }
 
-void scrollMouse(int x, int y)
+bool scrollMouse(int x, int y)
 {
 #if defined(IS_WINDOWS)
 	// Fix for #97 https://github.com/octalmage/robotjs/issues/97,
@@ -284,6 +288,7 @@ void scrollMouse(int x, int y)
 	CGEventPost(kCGHIDEventTap, event);
 
 	CFRelease(event);
+	return true;
 
 #elif defined(USE_X11)
 
@@ -322,6 +327,7 @@ void scrollMouse(int x, int y)
 	}
 
 	XFlush(display);
+	return true;
 
 #elif defined(IS_WINDOWS)
 
@@ -343,7 +349,7 @@ void scrollMouse(int x, int y)
 	mouseScrollInputs[1].mi.dwExtraInfo = 0;
 	mouseScrollInputs[1].mi.mouseData = y;
 
-	SendInput(2, mouseScrollInputs, sizeof(INPUT));
+	return SendInput(2, mouseScrollInputs, sizeof(INPUT)) == 2;
 #endif
 }
 

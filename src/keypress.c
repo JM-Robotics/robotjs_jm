@@ -15,8 +15,8 @@
 
 /* Convenience wrappers around ugly APIs. */
 #if defined(IS_WINDOWS)
-	#define WIN32_KEY_EVENT_WAIT(key, flags) \
-		(win32KeyEvent(key, flags))
+		#define WIN32_KEY_EVENT_WAIT(key, flags) \
+			(win32KeyEvent(key, flags))
 #elif defined(USE_X11)
 	#define X_KEY_EVENT(display, key, is_press) \
 		(XTestFakeKeyEvent(display, \
@@ -51,7 +51,7 @@ static io_connect_t _getAuxiliaryKeyDriver(void)
 #endif
 
 #if defined(IS_WINDOWS)
-void win32KeyEvent(int key, MMKeyFlags flags)
+bool win32KeyEvent(int key, MMKeyFlags flags)
 {
 	int scan = MapVirtualKey(key & 0xff, MAPVK_VK_TO_VSC);
 
@@ -110,11 +110,11 @@ void win32KeyEvent(int key, MMKeyFlags flags)
 	keyboardInput.ki.dwFlags = flags;
 	keyboardInput.ki.time = 0;
 	keyboardInput.ki.dwExtraInfo = 0;
-	SendInput(1, &keyboardInput, sizeof(keyboardInput));
+	return SendInput(1, &keyboardInput, sizeof(keyboardInput)) == 1;
 }
 #endif
 
-void toggleKeyCode(MMKeyCode code, const bool down, MMKeyFlags flags)
+bool toggleKeyCode(MMKeyCode code, const bool down, MMKeyFlags flags)
 {
 #if defined(IS_MACOSX)
    /* The media keys all have 1000 added to them to help us detect them. */
@@ -143,32 +143,35 @@ void toggleKeyCode(MMKeyCode code, const bool down, MMKeyFlags flags)
 		   CGEventSetFlags(keyEvent, flags);
 	   }
 	   CGEventPost(kCGSessionEventTap, keyEvent);
-	   CFRelease(keyEvent);
-   }
-#elif defined(IS_WINDOWS)
-   const DWORD dwFlags = down ? 0 : KEYEVENTF_KEYUP;
+		   CFRelease(keyEvent);
+	   }
+	   return true;
+	#elif defined(IS_WINDOWS)
+	   const DWORD dwFlags = down ? 0 : KEYEVENTF_KEYUP;
+	   bool sent = true;
 
    if (down) {
 	   /* Parse modifier keys. */
-	   if (flags & MOD_META) WIN32_KEY_EVENT_WAIT(K_META, dwFlags);
-	   if (flags & MOD_ALT) WIN32_KEY_EVENT_WAIT(K_ALT, dwFlags);
-	   if (flags & MOD_RIGHT_ALT) WIN32_KEY_EVENT_WAIT(VK_RMENU, dwFlags);
-	   if (flags & MOD_CONTROL) WIN32_KEY_EVENT_WAIT(K_CONTROL, dwFlags);
-	   if (flags & MOD_SHIFT) WIN32_KEY_EVENT_WAIT(K_SHIFT, dwFlags);
+		   if (flags & MOD_META) sent = WIN32_KEY_EVENT_WAIT(K_META, dwFlags) && sent;
+		   if (flags & MOD_ALT) sent = WIN32_KEY_EVENT_WAIT(K_ALT, dwFlags) && sent;
+		   if (flags & MOD_RIGHT_ALT) sent = WIN32_KEY_EVENT_WAIT(VK_RMENU, dwFlags) && sent;
+		   if (flags & MOD_CONTROL) sent = WIN32_KEY_EVENT_WAIT(K_CONTROL, dwFlags) && sent;
+		   if (flags & MOD_SHIFT) sent = WIN32_KEY_EVENT_WAIT(K_SHIFT, dwFlags) && sent;
 
-	   WIN32_KEY_EVENT_WAIT(code, dwFlags);
-   } else {
-	   /* Reverse order for key up */
-	   WIN32_KEY_EVENT_WAIT(code, dwFlags);
+		   sent = WIN32_KEY_EVENT_WAIT(code, dwFlags) && sent;
+	   } else {
+		   /* Reverse order for key up */
+		   sent = WIN32_KEY_EVENT_WAIT(code, dwFlags) && sent;
 
 	   /* Parse modifier keys. */
-	   if (flags & MOD_META) win32KeyEvent(K_META, dwFlags);
-	   if (flags & MOD_ALT) win32KeyEvent(K_ALT, dwFlags);
-	   if (flags & MOD_RIGHT_ALT) win32KeyEvent(VK_RMENU, dwFlags);
-	   if (flags & MOD_CONTROL) win32KeyEvent(K_CONTROL, dwFlags);
-	   if (flags & MOD_SHIFT) win32KeyEvent(K_SHIFT, dwFlags);
-   }
-#elif defined(USE_X11)
+		   if (flags & MOD_META) sent = win32KeyEvent(K_META, dwFlags) && sent;
+		   if (flags & MOD_ALT) sent = win32KeyEvent(K_ALT, dwFlags) && sent;
+		   if (flags & MOD_RIGHT_ALT) sent = win32KeyEvent(VK_RMENU, dwFlags) && sent;
+		   if (flags & MOD_CONTROL) sent = win32KeyEvent(K_CONTROL, dwFlags) && sent;
+		   if (flags & MOD_SHIFT) sent = win32KeyEvent(K_SHIFT, dwFlags) && sent;
+	   }
+	   return sent;
+	#elif defined(USE_X11)
    Display *display = XGetMainDisplay();
    const Bool is_press = down ? True : False; /* Just to be safe. */
 
@@ -190,18 +193,20 @@ void toggleKeyCode(MMKeyCode code, const bool down, MMKeyFlags flags)
 	   if (flags & MOD_ALT) X_KEY_EVENT(display, K_ALT, is_press);
 	   if (flags & MOD_RIGHT_ALT) X_KEY_EVENT(display, XK_Mode_switch, is_press);
 	   if (flags & MOD_CONTROL) X_KEY_EVENT(display, K_CONTROL, is_press);
-	   if (flags & MOD_SHIFT) X_KEY_EVENT(display, K_SHIFT, is_press);
-   }
-#endif
+		   if (flags & MOD_SHIFT) X_KEY_EVENT(display, K_SHIFT, is_press);
+	   }
+	   return true;
+	#endif
 }
 
-void tapKeyCode(MMKeyCode code, MMKeyFlags flags)
+bool tapKeyCode(MMKeyCode code, MMKeyFlags flags)
 {
-	toggleKeyCode(code, true, flags);
-	toggleKeyCode(code, false, flags);
+	const bool down = toggleKeyCode(code, true, flags);
+	const bool up = toggleKeyCode(code, false, flags);
+	return down && up;
 }
 
-void toggleKey(char c, const bool down, MMKeyFlags flags)
+bool toggleKey(char c, const bool down, MMKeyFlags flags)
 {
 	MMKeyCode keyCode = keyCodeForChar(c);
 
@@ -221,13 +226,14 @@ void toggleKey(char c, const bool down, MMKeyFlags flags)
     if ((modifiers & 4) != 0) flags |= MOD_ALT;
     keyCode = keyCode & 0xff; // Mask out modifiers.
 #endif
-	toggleKeyCode(keyCode, down, flags);
+	return toggleKeyCode(keyCode, down, flags);
 }
 
-void tapKey(char c, MMKeyFlags flags)
+bool tapKey(char c, MMKeyFlags flags)
 {
-	toggleKey(c, true, flags);
-	toggleKey(c, false, flags);
+	const bool down = toggleKey(c, true, flags);
+	const bool up = toggleKey(c, false, flags);
+	return down && up;
 }
 
 #if defined(IS_MACOSX)
@@ -263,27 +269,29 @@ void toggleUnicode(UniChar ch, const bool down)
 	#define toggleUniKey(c, down) toggleKey(c, down, MOD_NONE)
 #endif
 
-void unicodeTap(const unsigned value)
+bool unicodeTap(const unsigned value)
 {
-	#if defined(USE_X11)
+		#if defined(USE_X11)
 		char ch = (char)value;
 
-		toggleUniKey(ch, true);
-		toggleUniKey(ch, false);
-	#elif defined(IS_MACOSX)
+			const bool down = toggleUniKey(ch, true);
+			const bool up = toggleUniKey(ch, false);
+			return down && up;
+		#elif defined(IS_MACOSX)
 		UniChar ch = (UniChar)value; // Convert to unsigned char
 
 		toggleUnicode(ch, true);
-		toggleUnicode(ch, false);
-	#elif defined(IS_WINDOWS)
+			toggleUnicode(ch, false);
+			return true;
+		#elif defined(IS_WINDOWS)
 		INPUT inputs[2] = { 0 };
 		inputs[0].type = INPUT_KEYBOARD;
 		inputs[0].ki.wScan = value;
 		inputs[0].ki.dwFlags = KEYEVENTF_UNICODE;
 		inputs[1] = inputs[0];
 		inputs[1].ki.dwFlags = KEYEVENTF_UNICODE | KEYEVENTF_KEYUP;
-		SendInput(2, inputs, sizeof(INPUT));
-	#endif
+			return SendInput(2, inputs, sizeof(INPUT)) == 2;
+		#endif
 }
 
 void typeStringDelayed(const char *str, const unsigned cpm)

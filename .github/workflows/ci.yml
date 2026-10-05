@@ -122,8 +122,8 @@ jobs:
       if: ${{ (matrix.build-group == 'linux-x64') || (matrix.build-group == 'linux-arm64') }}
       run: sudo apt-get install libxtst-dev libpng++-dev
     - run: npm ci
-    - name: Test helper protocol framing
-      run: npm run test:protocol
+    - name: Test portable input and helper contracts
+      run: npm run test:unit
     - name: Prebuildify
       run: npm run prebuild-$BUILD_GROUP
       shell: bash

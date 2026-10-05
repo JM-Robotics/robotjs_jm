@@ -1,12 +1,14 @@
 {
   "name": "robotjs_jm",
-  "version": "38.0.1",
+  "version": "38.0.2",
   "description": "Node.js Desktop Automation. Forked for JM Robotics",
   "main": "index.js",
   "typings": "index.d.ts",
   "bin": "robotjs.js",
   "scripts": {
-    "test": "run-script-os",
+    "test": "npm run test:unit",
+    "test:unit": "jasmine test/browser-input-adapter.js test/robot-helper-command-handler.js test/json-line-protocol.js",
+    "test:integration": "run-script-os",
     "test:protocol": "jasmine test/json-line-protocol.js",
     "test:darwin:linux": "jasmine test/**/*.js",
     "test-keyboard": "node test/keyboard.js",

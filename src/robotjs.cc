@@ -16,6 +16,14 @@
 int mouseDelay = 10;
 int keyboardDelay = 10;
 
+Napi::Value throwNativeInputFailure(Napi::Env env)
+{
+	Napi::Error error = Napi::Error::New(env, "Native input injection failed");
+	error.Value().Set("code", "ROBOTJS_SEND_INPUT_FAILED");
+	error.ThrowAsJavaScriptException();
+	return env.Null();
+}
+
 /*
  __  __
 |  \/  | ___  _   _ ___  ___
@@ -113,7 +121,7 @@ return env.Null();
 
 	MMSignedPoint point;
 	point = MMSignedPointMake(x, y);
-	moveMouse(point);
+	if (!moveMouse(point)) return throwNativeInputFailure(env);
 	microsleep(mouseDelay);
 
 	return Napi::Number::New(env, 1);
@@ -261,7 +269,7 @@ return env.Null();
 return env.Null();
 	}
 
-	toggleMouse(down, button);
+	if (!toggleMouse(down, button)) return throwNativeInputFailure(env);
 	microsleep(mouseDelay);
 
 	return Napi::Number::New(env, 1);
@@ -295,7 +303,7 @@ return env.Null();
 	int x = info[0].As<Napi::Number>().Int32Value();
 	int y = info[1].As<Napi::Number>().Int32Value();
 
-	scrollMouse(x, y);
+	if (!scrollMouse(x, y)) return throwNativeInputFailure(env);
 	microsleep(mouseDelay);
 
 	return Napi::Number::New(env, 1);
@@ -550,9 +558,9 @@ return env.Null();
 return env.Null();
 			break;
 		default:
-			toggleKeyCode(key, true, flags);
-			microsleep(keyboardDelay);
-			toggleKeyCode(key, false, flags);
+				if (!toggleKeyCode(key, true, flags)) return throwNativeInputFailure(env);
+				microsleep(keyboardDelay);
+				if (!toggleKeyCode(key, false, flags)) return throwNativeInputFailure(env);
 			microsleep(keyboardDelay);
 			break;
 	}
@@ -636,7 +644,7 @@ return env.Null();
 return env.Null();
 			break;
 		default:
-			toggleKeyCode(key, down, flags);
+				if (!toggleKeyCode(key, down, flags)) return throwNativeInputFailure(env);
 			microsleep(keyboardDelay);
 	}
 
@@ -650,7 +658,7 @@ Napi::Value unicodeTapWrapper(const Napi::CallbackInfo& info)
 	size_t value = info[0].As<Napi::Number>().Int32Value();
 
 	if (value != 0) {
-		unicodeTap(value);
+		if (!unicodeTap(value)) return throwNativeInputFailure(env);
 
 		return Napi::Number::New(env, 1);
 	} else {

@@ -9,7 +9,7 @@ describe('browser input adapter', () => {
         expect(mapBrowserKeyEvent({ code: 'ArrowLeft', key: 'ArrowLeft', direction: 'keydown' }))
             .toEqual({ action: 'keyToggle', key: 'left', direction: 'down' });
         expect(mapBrowserKeyEvent({ code: 'Slash', key: '?', direction: 'keydown' }))
-            .toEqual({ action: 'keyToggle', key: '/', direction: 'down' });
+            .toEqual({ action: 'unicodeTap', codePoint: '?'.codePointAt(0), direction: 'down' });
         expect(mapBrowserKeyEvent({ code: 'Numpad7', key: '7', direction: 'keydown' }))
             .toEqual({ action: 'keyToggle', key: 'numpad_7', direction: 'down' });
         expect(mapBrowserKeyEvent({ code: 'IntlYen', key: 'ø', direction: 'keydown' }))
@@ -20,13 +20,22 @@ describe('browser input adapter', () => {
         for (const [code, key, expected] of [
             ['Backspace', 'Backspace', 'backspace'], ['Escape', 'Escape', 'escape'], ['Space', ' ', 'space'],
             ['ControlLeft', 'Control', 'left_control'], ['AltLeft', 'Alt', 'alt'], ['MetaLeft', 'Meta', 'command'],
-            ['BracketLeft', '{', '['], ['NumpadAdd', '+', 'numpad_+'],
+            ['NumpadAdd', '+', 'numpad_+'],
         ]) {
             expect(mapBrowserKeyEvent({ code, key, direction: 'keydown' }))
                 .toEqual({ action: 'keyToggle', key: expected, direction: 'down' });
             expect(mapBrowserKeyEvent({ code, key, direction: 'keyup' }))
                 .toEqual({ action: 'keyToggle', key: expected, direction: 'up' });
         }
+
+        expect(mapBrowserKeyEvent({ code: 'BracketLeft', key: 'å', direction: 'keydown' }))
+            .toEqual({ action: 'unicodeTap', codePoint: 'å'.codePointAt(0), direction: 'down' });
+        expect(mapBrowserKeyEvent({ code: 'KeyA', key: 'q', direction: 'keydown' }))
+            .toEqual({ action: 'unicodeTap', codePoint: 'q'.codePointAt(0), direction: 'down' });
+        expect(mapBrowserKeyEvent(
+            { code: 'KeyC', key: 'c', direction: 'keydown' },
+            new Set(['left_control']),
+        )).toEqual({ action: 'keyToggle', key: 'c', direction: 'down' });
     });
 
     it('tracks and releases held keys and buttons', () => {

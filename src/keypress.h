@@ -45,21 +45,21 @@ typedef unsigned int MMKeyFlags;
 
 #if defined(IS_WINDOWS)
 /* Send win32 key event for given key. */
-void win32KeyEvent(int key, MMKeyFlags flags);
+bool win32KeyEvent(int key, MMKeyFlags flags);
 #endif
 
 /* Toggles the given key down or up. */
-void toggleKeyCode(MMKeyCode code, const bool down, MMKeyFlags flags);
+bool toggleKeyCode(MMKeyCode code, const bool down, MMKeyFlags flags);
 
 /* Toggles the key down and then up. */
-void tapKeyCode(MMKeyCode code, MMKeyFlags flags);
+bool tapKeyCode(MMKeyCode code, MMKeyFlags flags);
 
 /* Toggles the key corresponding to the given UTF character up or down. */
-void toggleKey(char c, const bool down, MMKeyFlags flags);
-void tapKey(char c, MMKeyFlags flags);
+bool toggleKey(char c, const bool down, MMKeyFlags flags);
+bool tapKey(char c, MMKeyFlags flags);
 
 /* Sends a Unicode character without modifiers. */
-void unicodeTap(const unsigned value);
+bool unicodeTap(const unsigned value);
 
 /* Macro to convert WPM to CPM integers.
  * (the average English word length is 5.1 characters.) */
