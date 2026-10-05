@@ -1,197 +1,49 @@
+'use strict';
+
 const net = require('net');
 const path = require('path');
-const {
-    createJsonLineDecoder,
-    encodeJsonLine,
-} = require('./json-line-protocol');
+const { createBrowserInputAdapter } = require('./browser-input-adapter');
+const { createJsonLineDecoder, encodeJsonLine } = require('./json-line-protocol');
+const { createRobotHelperCommandHandler } = require('./robot-helper-command-handler');
 
 const baseDir = process.pkg ? path.dirname(process.execPath) : __dirname;
-
-// This will look for prebuilds/*/*.node relative to baseDir
 const robot = require('node-gyp-build')(baseDir);
-
-const DEFAULT_PORT = 13337;
-const port = parseInt(process.argv[2], 10) || DEFAULT_PORT;
+const port = parseInt(process.argv[2], 10) || 13337;
+const sockets = new Set();
 
 robot.setMouseDelay(1);
 
 const server = net.createServer((socket) => {
+    sockets.add(socket);
+    const inputAdapter = createBrowserInputAdapter(robot);
     const send = (message) => socket.write(encodeJsonLine(message));
+    const close = () => {
+        server.close(() => process.exit(0));
+        for (const activeSocket of sockets) activeSocket.destroy();
+    };
+    const handleCommand = createRobotHelperCommandHandler({ robot, inputAdapter, send, close });
     const decoder = createJsonLineDecoder({
-        onMessage: (message) => {
-            try {
-                switch (message.type) {
-                    case 'mousemove': {
-                        robot.moveMouse(message.x, message.y);
-                        break;
-                    }
-                    case 'mouseClick': {
-                        robot.mouseToggle(message.clickType, message.button);
-                        break;
-                    }
-                    case 'scroll': {
-                        robot.scrollMouse(message.x, message.y);
-                        break;
-                    }
-                    case 'keyToggle': {
-                        //old method used by pilot v <= 1.54
-                        robot.keyToggle(message.key, message.direction);
-                        break;
-                    }
-                    case 'keyTap': {
-                        keyTap(message);
-                        break;
-                    }
-                    case 'close':
-                        send({ status: 'ok', message: 'Shutting down' });
-                        console.log('Shutdown command received. Closing server...');
-                        server.close(() => {
-                            console.log('Server closed.');
-                            process.exit(0);
-                        });
-
-                        // Force-close all active sockets
-                        sockets.forEach((s) => s.destroy());
-                        break;
-                    default:
-                        console.warn('Unknown message type:', message.type);
-                }
-            } catch (error) {
-                console.error('Failed to process command', error);
-                send({ status: 'error', type: message.type, error: error.message });
-            }
-        },
-        onError: (error) => {
-            console.error('Failed to parse framed command', error.message);
-            send({ status: 'error', type: 'protocol', error: error.code || 'JSON_LINE_INVALID_FRAME' });
-        },
+        onMessage: handleCommand,
+        onError: (error) => send({
+            status: 'error',
+            type: 'protocol',
+            requestId: '',
+            error: {
+                code: error.code || 'JSON_LINE_INVALID_FRAME',
+                message: 'Invalid framed RobotJS command',
+            },
+        }),
     });
 
     socket.on('data', (data) => decoder.push(data));
-
-    socket.on('error', (err) => {
-        console.error('Socket error:', err.message);
-    });
-
+    socket.on('error', (error) => console.error('RobotJS helper socket error:', error.message));
     socket.on('close', () => {
-        console.log('Client disconnected.');
+        sockets.delete(socket);
+        try { inputAdapter.releaseAll(); }
+        catch (error) { console.error('RobotJS helper could not release held input:', error.message); }
     });
 });
 
 server.listen(port, () => {
     console.log(`RobotJS Helper listening on port ${port} (admin)`);
 });
-
-var lastKeyWasCommand = false;
-var rightAltModifer = false;
-const keysToNotTranslate = [
-    "up",
-    "right",
-    "down",
-    "left",
-    "CapsLock",
-    "End",
-    "Insert",
-    "Home",
-    "PageUp",
-    "PageDown",
-    "Delete",
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-    "0",
-    "NumLock",
-    "/",
-    "*",
-    "-",
-    ","
-]
-
-function keyTap(data) {
-    setThisCall = false;
-    const { normKey, isModifier } = normalizeKey(data.key);
-    console.log(`Toggling normalized key: '${data.key}' => '${normKey}'`);
-    if (isModifier) {
-        if (normKey == 'right_alt') {
-            rightAltModifer = data.direction === 'down';
-        } else {
-          robot.keyToggle(normKey, data.direction);
-        }
-
-        if (normKey === 'command') {
-            if (data.direction === 'down') {
-                lastKeyWasCommand = true;
-                setThisCall = true;
-            } else {
-                lastKeyWasCommand = false;
-            }
-        }
-    } else {
-        if (data.keyCode > 127 && data.key.length === 1) {
-            if (data.direction === 'down') {
-                const charFromKey = data.key.charCodeAt(0);
-                console.log(`unicodeTap: '${data.keyCode}', '${data.key}'  => ('${charFromKey}')`);
-                robot.unicodeTap(charFromKey);
-            }
-        } else {
-            let togglingKey;
-            if(keysToNotTranslate.includes(data.key)) {
-                togglingKey = normKey
-                console.log(`keyToggling key: '${togglingKey}' from '${data.key}', . Direction: ${data.direction}, rightAltModifier: ${rightAltModifer}`);
-                robot.keyToggle(togglingKey, data.direction, rightAltModifer ? 'right_alt' : []);
-            } else {
-                togglingKey =  String.fromCharCode(data.keyCode);
-                console.log(`keyToggling keyCode: '${togglingKey}' from '${data.keyCode}'. data.key was ${data.key}. Direction: ${data.direction}, rightAltModifier: ${rightAltModifer}`);
-                robot.keyToggle(togglingKey, data.direction, rightAltModifer ? 'right_alt' : []);
-            }
-        }
-    }
-    if (lastKeyWasCommand && !setThisCall) {
-        robot.keyToggle('command', 'up');
-        lastKeyWasCommand = false;
-    }
-}
-
-function normalizeKey(key) {
-    let normKey = key.toLowerCase();
-    let isModifier = false;
-    const RIGHTALTKEYSNAMES = ['right_alt', 'altgr', 'altgraph'];
-    const LEFTALTKEYSNAMES = ['alt', 'left_alt', 'leftalt'];
-    const SHIFTKEYSNAMES = ['shift'];
-    const CONTROLKEYSNAMES = ['control', 'ctrl'];
-    const METAKEYSNAMES = ['meta', 'windows', 'win', 'command'];
-
-    const MODIFERS = {
-        right_alt: RIGHTALTKEYSNAMES,
-        alt: LEFTALTKEYSNAMES,
-        shift: SHIFTKEYSNAMES,
-        control: CONTROLKEYSNAMES,
-        command: METAKEYSNAMES,
-    };
-    for (let modifierType of Object.keys(MODIFERS)) {
-        if (MODIFERS[modifierType].includes(normKey)) {
-            normKey = modifierType;
-            isModifier = true;
-            break;
-        }
-    }
-
-    if (normKey === 'capslock') normKey = 'capslock';
-    if (normKey === 'backspace') normKey = 'backspace';
-    if (normKey === 'tab') normKey = 'tab';
-    if (normKey === 'enter') normKey = 'enter';
-    if (normKey === 'return') normKey = 'enter';
-    if (normKey === 'escape') normKey = 'escape';
-    if (normKey === 'esc') normKey = 'escape';
-    if (normKey === 'numlock') normKey = 'numpad_lock';
-    if (normKey != ' ' && normKey.trim() === '') normKey = undefined;
-
-    //console.log('mapped key:', `'${key}' => '${normKey}'`);
-    return { normKey, isModifier };
-}
