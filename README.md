@@ -182,3 +182,7 @@ MIT
 
 Based on [autopy](https://github.com/msanders/autopy). 
 Maintained by [Jason Stallings](http://jason.stallin.gs).
+
+## Remote input expiry (38.0.3)
+
+Native input requires an acknowledged `inputSession` (`sessionId`, boolean `active`, `expiresAt`) and matching `sessionId`/finite `expiresAt` on every input command. The helper checks expiry immediately before native execution and acknowledges session changes with `inputProtectionVersion: 1`. Revocation clears the matching session and releases held input; revocation of an older session does not replace a newer session. `releaseInputs` and `close` remain usable for cleanup without a deadline. An already executing native operation cannot be undone. Publish the canonical CI-built helper before updating Pilot's locked dependency; changing installed JavaScript alone does not update `robot-helper.exe`.
